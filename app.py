@@ -1,9 +1,11 @@
 """CX Intelligence — dashboard executivo v0.2 (dados integralmente sintéticos)."""
+import os
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from src.pipeline import get_or_create, kpis, validate_data
+from src.database import load_tickets
 from src.model import train_and_evaluate
 
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
@@ -27,7 +29,7 @@ h1,h2,h3 {letter-spacing:-.025em}
 
 @st.cache_data
 def load_data():
-    return get_or_create()
+    return load_tickets() if os.getenv('CX_DATA_SOURCE','csv').lower() == 'postgres' else get_or_create()
 
 def chart(fig):
     fig.update_layout(**PLOT)
@@ -46,6 +48,7 @@ if len(dates)==2:
     subset=subset[subset.date.dt.date.between(start,end)]
 st.sidebar.divider()
 st.sidebar.caption("🔒 Dataset sintético · Sem dados pessoais reais")
+st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
 st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v0.2</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
