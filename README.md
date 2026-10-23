@@ -5,7 +5,7 @@
 > **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v0.4-orange)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v0.4.1-orange)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
@@ -62,7 +62,7 @@ Banco local em `127.0.0.1:5433`; a aplicação usa CSV por padrão. Veja [guia d
 
 ## NLP experimental — v0.4
 
-A aba **NLP experimental** permite analisar frases fictícias utilizando TF-IDF e regressão logística, com métricas de F1 macro, acurácia e matriz de confusão. Amostra de treinamento **muito pequena**: 30 mensagens artificiais, nove no teste; nenhuma inferência é aplicada aos tickets do CSV/SQL. Consulte [as limitações e regras de negócio](docs/NLP.md).
+A aba **NLP experimental** analisa frases fictícias via TF-IDF e regressão logística e compara três baselines (Regressão Logística, Naive Bayes e LinearSVC). São **60 mensagens sintéticas**, com 18 no teste estratificado. São exibidos F1 macro, acurácia e erros. Trata-se de avaliação didática, não validação operacional; nenhuma inferência é aplicada aos tickets do CSV/SQL. Consulte [as limitações e regras de negócio](docs/NLP.md).
 
 ## Próximas entregas
 `v0.2` UX e validação robusta → `v0.3` PostgreSQL + ETL + Docker → `v0.4` NLP avaliado → `v0.5` alvos temporais reais na simulação e calibração → `v1.0` CI, alertas auditáveis e demo online.
