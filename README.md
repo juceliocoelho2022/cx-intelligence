@@ -5,7 +5,7 @@
 > **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v0.6-orange)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v0.7-orange)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
@@ -25,6 +25,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [NLP experimental](docs/NLP.md) | Frases fictícias, TF-IDF, matriz de confusão e avaliação por F1 |
 | [Alertas CX](docs/ANOMALIES.md) | Regras semanais, limiares, severidade e limitações |
 | [Diagnóstico de segmentos](docs/ROOT_CAUSE_ANALYSIS.md) | Lacunas de CSAT e resolução, priorização e hipóteses de investigação |
+| [Relatório executivo](docs/EXECUTIVE_REPORT.md) | Sumário gerencial, indicadores, descobertas e exportação Markdown |
 
 ## Stack
 `Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
@@ -73,6 +74,10 @@ A aba **Alertas CX** apresenta picos de volume semanal por assunto usando uma m�
 ## Diagnóstico CX — v0.6
 
 A aba **Diagnóstico CX** compara segmentos de assunto × canal com a população filtrada e registra gaps de CSAT positivo e resolução em pontos percentuais, com limites mínimos de amostra e recomendações auditáveis. Resultados são descritivos e **não identificam causa raiz comprovada**. Consulte [regras de negócio](docs/ROOT_CAUSE_ANALYSIS.md).
+
+## Relatórios executivos — v0.7
+
+A aba **Relatório executivo** gera uma síntese reproduzível do recorte filtrado, com KPIs, achados, riscos heurísticos e recomendações de investigação. O relatório pode ser exportado em **Markdown** e não usa LLM ou dados reais. Veja [regras de negócio](docs/EXECUTIVE_REPORT.md).
 
 ## Próximas entregas
 `v0.2` UX e validação robusta → `v0.3` PostgreSQL + ETL + Docker → `v0.4` NLP avaliado → `v0.5` alvos temporais reais na simulação e calibração → `v1.0` CI, alertas auditáveis e demo online.
