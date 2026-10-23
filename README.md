@@ -5,7 +5,7 @@
 > **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v0.4.1-orange)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v0.5-orange)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
@@ -23,6 +23,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Governança, testes e roadmap](docs/GOVERNANCE_AND_ROADMAP.md) | LGPD, avaliação, riscos, qualidade e plano de versões |
 | [PostgreSQL e ETL](docs/POSTGRES_ETL.md) | Docker Compose, carga idempotente e auditoria de execuções |
 | [NLP experimental](docs/NLP.md) | Frases fictícias, TF-IDF, matriz de confusão e avaliação por F1 |
+| [Alertas CX](docs/ANOMALIES.md) | Regras semanais, limiares, severidade e limitações |
 
 ## Stack
 `Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
@@ -63,6 +64,10 @@ Banco local em `127.0.0.1:5433`; a aplicação usa CSV por padrão. Veja [guia d
 ## NLP experimental — v0.4
 
 A aba **NLP experimental** analisa frases fictícias via TF-IDF e regressão logística e compara três baselines (Regressão Logística, Naive Bayes e LinearSVC). São **60 mensagens sintéticas**, com 18 no teste estratificado. São exibidos F1 macro, acurácia e erros. Trata-se de avaliação didática, não validação operacional; nenhuma inferência é aplicada aos tickets do CSV/SQL. Consulte [as limitações e regras de negócio](docs/NLP.md).
+
+## Alertas de volume — v0.5
+
+A aba **Alertas CX** apresenta picos de volume semanal por assunto usando uma média das quatro semanas completas anteriores, crescimento mínimo relativo de 50% e absoluto de cinco chamados. São regras **heurísticas e descritivas**, não um modelo preditivo nem uma afirmação causal. Veja [regras, ressalvas e critérios](docs/ANOMALIES.md).
 
 ## Próximas entregas
 `v0.2` UX e validação robusta → `v0.3` PostgreSQL + ETL + Docker → `v0.4` NLP avaliado → `v0.5` alvos temporais reais na simulação e calibração → `v1.0` CI, alertas auditáveis e demo online.
