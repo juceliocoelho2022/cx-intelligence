@@ -43,7 +43,7 @@ def detect_volume_anomalies(df, baseline_weeks=MIN_BASELINE, ratio=THRESHOLD_RAT
     first_date = pd.to_datetime(df["date"]).min().normalize()
     last_date = pd.to_datetime(df["date"]).max().normalize()
     first_complete = first_date if first_date.weekday() == 0 else first_date + pd.Timedelta(days=7-first_date.weekday())
-    last_complete = last_date - pd.Timedelta(days=last_date.weekday()+1)
+    last_complete = (last_date - pd.Timedelta(days=6)) if last_date.weekday() == 6 else (last_date - pd.Timedelta(days=last_date.weekday()+7))
     weekly = weekly[weekly.week_start.between(first_complete, last_complete)].copy()
     if weekly.empty:
         return pd.DataFrame(columns=cols)
