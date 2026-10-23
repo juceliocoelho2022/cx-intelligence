@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cx_intelligence
+      POSTGRES_USER: cx_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cx_local_dev_only}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - cx_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cx_user -d cx_intelligence"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  cx_pg_data:
