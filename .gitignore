@@ -1,6 +1,27 @@
+# Python
 __pycache__/
+*.py[cod]
 .pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
 .venv/
-*.pyc
+venv/
+.env
+.env.*
+!.env.example
+*.log
 .DS_Store
+
+# Local/generated artifacts
 models/
+data/*.csv
+data/*.parquet
+data/*.db
+data/*.sqlite*
+!.gitkeep
+!.gitignore
+
+# Streamlit secrets
+.streamlit/secrets.toml
