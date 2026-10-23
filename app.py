@@ -1,48 +1,113 @@
-import streamlit as st
-import plotly.express as px
+"""CX Intelligence — dashboard executivo v0.2 (dados integralmente sintéticos)."""
 import pandas as pd
-from src.pipeline import get_or_create, kpis
+import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
+from src.pipeline import get_or_create, kpis, validate_data
 from src.model import train_and_evaluate
 
-st.set_page_config(page_title='CX Intelligence | Analytics',page_icon='📊',layout='wide')
-st.title('CX Intelligence')
-st.caption('Customer Experience Analytics | Portfólio demonstrativo — dados integralmente sintéticos')
+st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
+COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
+PLOT = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#DCE7F6"), margin=dict(l=15,r=15,t=45,b=20))
+st.markdown("""
+<style>
+.stApp {background:linear-gradient(135deg,#081323 0%,#0C1B30 60%,#101827 100%);color:#E9F0FA}
+[data-testid="stSidebar"] {background:#111F31}
+h1,h2,h3 {letter-spacing:-.025em}
+.hero {background:linear-gradient(110deg,#16243B,#09182D);padding:25px 28px;border:1px solid #304259;border-radius:17px;margin-bottom:16px}
+.eyebrow {letter-spacing:.18em;color:#FF934A;font-size:.73rem;font-weight:700;text-transform:uppercase}
+.hero h1 {color:#F7FAFE;margin:.25rem 0;font-size:2.35rem}
+.hero p {margin:0;color:#B4C2D7}
+.note {border-left:3px solid #FF792D;background:#19263B;padding:12px 15px;border-radius:5px;margin:16px 0;font-size:.87rem;color:#CBD6E6}
+[data-testid="stMetric"] {background:#12243A;border:1px solid #2E4057;padding:16px;border-radius:14px;min-height:123px}
+[data-testid="stMetricLabel"] {color:#ADBFD5}
+[data-testid="stMetricValue"] {color:#F2F7FE;font-size:1.8rem}
+[data-testid="stTabs"] button[aria-selected="true"] {color:#FF792D}
+</style>""", unsafe_allow_html=True)
+
 @st.cache_data
-def load(): return get_or_create()
-df=load()
-with st.sidebar:
-    st.header('Filtros')
-    topics=st.multiselect('Assunto',sorted(df.topic.unique()),default=sorted(df.topic.unique()))
-    channels=st.multiselect('Canal',sorted(df.channel.unique()),default=sorted(df.channel.unique()))
-filtered=df[df.topic.isin(topics)&df.channel.isin(channels)].copy()
-if filtered.empty:
-    st.warning('Sem registros para os filtros selecionados.'); st.stop()
-metrics=kpis(filtered)
-cols=st.columns(5)
-for col, label, value in zip(cols,['Atendimentos','CSAT (4–5)','Resolvidos*','Tempo médio (h)','Reincidência simulada'],
-       [metrics['total_tickets'],f"{metrics['csat_pct']}%",f"{metrics['fcr_proxy_pct']}%",metrics['avg_resolution_hours'],f"{metrics['repeat_contact_rate_pct']}%"]):
-    col.metric(label,value)
-st.caption('* Percentual resolvido; não é FCR real. Reincidência e sentimento são campos simulados.')
-tab1,tab2,tab3,tab4=st.tabs(['Visão executiva','Voz do cliente','Risco preditivo','Qualidade e dicionário'])
-with tab1:
+def load_data():
+    return get_or_create()
+
+def chart(fig):
+    fig.update_layout(**PLOT)
+    st.plotly_chart(fig, use_container_width=True)
+
+df=load_data()
+st.sidebar.markdown("### 📊 CX Intelligence")
+st.sidebar.caption("Exploração analítica — ambiente demonstrativo")
+st.sidebar.divider()
+topics=st.sidebar.multiselect("Assunto",sorted(df.topic.unique()),default=sorted(df.topic.unique()))
+channels=st.sidebar.multiselect("Canal",sorted(df.channel.unique()),default=sorted(df.channel.unique()))
+dates=st.sidebar.date_input("Período",value=(df.date.min().date(),df.date.max().date()),min_value=df.date.min().date(),max_value=df.date.max().date())
+subset=df[df.topic.isin(topics)&df.channel.isin(channels)].copy()
+if len(dates)==2:
+    start,end=dates
+    subset=subset[subset.date.dt.date.between(start,end)]
+st.sidebar.divider()
+st.sidebar.caption("🔒 Dataset sintético · Sem dados pessoais reais")
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v0.2</div>
+<h1><span style="color:#FF792D">CX</span> Intelligence</h1>
+<p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
+if subset.empty:
+    st.warning("Nenhum registro no recorte selecionado. Ajuste os filtros da barra lateral.")
+    st.stop()
+m=kpis(subset)
+kpi_cards=st.columns(5)
+for slot,(name,value,tip) in zip(kpi_cards,[
+    ("Atendimentos",f"{m['total_tickets']:,}".replace(",","."),"Tickets no período selecionado"),
+    ("CSAT positivo",f"{m['csat_pct']:.1f}%","Notas simuladas 4–5 / avaliações"),
+    ("Resolvidos",f"{m['fcr_proxy_pct']:.1f}%","Resolução registrada — não é FCR"),
+    ("Tempo médio",f"{m['avg_resolution_hours']:.1f} h","Horas por chamado, não minutos"),
+    ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
+    slot.metric(name,value,help=tip)
+st.markdown('<div class="note">🔎 Todos os números são sintéticos. * Reincidência e sentimento são rótulos simulados. A taxa de resolução não mede FCR e o projeto não mede NPS nem churn real.</div>',unsafe_allow_html=True)
+tab_overview,tab_voice,tab_risk,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🛡️ Qualidade dos dados"])
+with tab_overview:
+    daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
+    l,r=st.columns(2)
+    with l:
+        chart(px.line(daily,x="day",y="tickets",title="Volume diário de atendimentos",color_discrete_sequence=[COLORS["cyan"]],markers=True,labels={"day":"Data","tickets":"Chamados"}))
+    with r:
+        fig=px.line(daily,x="day",y="csat",title="CSAT positivo diário (%)",color_discrete_sequence=[COLORS["orange"]],labels={"day":"Data","csat":"CSAT (%)"})
+        fig.update_yaxes(range=[0,100]);chart(fig)
     a,b=st.columns(2)
-    daily=filtered.assign(day=filtered.date.dt.date).groupby('day',as_index=False).agg(tickets=('ticket_id','count'),csat=('csat',lambda s:100*s.ge(4).mean()))
-    with a: st.plotly_chart(px.line(daily,x='day',y='tickets',title='Volume diário de chamados'),use_container_width=True)
-    with b: st.plotly_chart(px.line(daily,x='day',y='csat',title='CSAT diário (%)'),use_container_width=True)
-    st.plotly_chart(px.bar(filtered.groupby('topic',as_index=False).agg(tickets=('ticket_id','count')),x='topic',y='tickets',title='Volume por tema'),use_container_width=True)
-with tab2:
-    count=filtered.groupby(['topic','sentiment']).size().reset_index(name='chamados')
-    st.plotly_chart(px.bar(count,x='topic',y='chamados',color='sentiment',barmode='stack',title='Sentimentos simulados por tema'),use_container_width=True)
-    st.dataframe(filtered.groupby('topic').agg(atendimentos=('ticket_id','count'),csat_medio=('csat','mean'),tempo_medio_h=('resolution_hours','mean')).round(2),use_container_width=True)
-with tab3:
-    st.info('Modelo supervisionado treinado com dados sintéticos. Alvo: reincidência futura simulada. Não usar scores para decisões sobre clientes reais.')
-    _,m,pred=train_and_evaluate(df)
+    with a:
+        topic_summary=subset.groupby("topic",as_index=False).size().rename(columns={"size":"tickets"}).sort_values("tickets")
+        chart(px.bar(topic_summary,x="tickets",y="topic",orientation="h",title="Principais motivos de atendimento",color_discrete_sequence=[COLORS["orange"]],labels={"topic":"Assunto","tickets":"Chamados"}))
+    with b:
+        channel_summary=subset.groupby("channel",as_index=False).size().rename(columns={"size":"tickets"})
+        chart(px.pie(channel_summary,names="channel",values="tickets",hole=.65,title="Distribuição por canal",color_discrete_sequence=[COLORS["cyan"],COLORS["orange"],COLORS["green"],COLORS["red"]]))
+    st.markdown("#### Insights descritivos do recorte")
+    top=topic_summary.iloc[-1]
+    st.info(f"**{top['topic']}** concentra o maior volume ({int(top['tickets'])} tickets; {100*top['tickets']/len(subset):.1f}% do recorte). Investigue processos e motivos antes de atribuir causas.")
+with tab_voice:
+    st.caption("Os sentimentos abaixo foram sorteados durante a geração dos dados. Não representam inferência NLP de textos.")
+    sentiment=subset.groupby(["topic","sentiment"],as_index=False).size().rename(columns={"size":"tickets"})
+    chart(px.bar(sentiment,x="topic",y="tickets",color="sentiment",barmode="stack",title="Distribuição de sentimentos sintéticos por assunto",color_discrete_map={"positivo":COLORS["green"],"neutro":COLORS["cyan"],"negativo":COLORS["red"]}))
+    per_topic=subset.groupby("topic",as_index=False).agg(atendimentos=("ticket_id","size"),csat_positivo_pct=("csat",lambda s:round(100*s.ge(4).mean(),1)),resolvidos_pct=("resolved",lambda s:round(100*s.mean(),1)),tempo_medio_h=("resolution_hours","mean"))
+    st.dataframe(per_topic.round(2),use_container_width=True,hide_index=True)
+with tab_risk:
+    st.info("Experimento supervisionado: o alvo de reincidência é gerado artificialmente. Não utilizar scores para decisões sobre pessoas reais.")
+    with st.spinner("Treinando baseline temporal..."):
+        _,score,pred=train_and_evaluate(df)
     c1,c2,c3=st.columns(3)
-    c1.metric('ROC-AUC (holdout temporal)',m['roc_auc'])
-    c2.metric('Average Precision',m['average_precision'])
-    c3.metric('Prevalência no teste',f"{m['prevalence']*100:.1f}%")
-    st.dataframe(pred[pred.topic.isin(topics)&pred.channel.isin(channels)].head(100),use_container_width=True)
-with tab4:
-    st.write('**Validações:** identificadores únicos, campos obrigatórios, CSAT 1–5, duração não negativa e indicadores binários.')
-    st.dataframe(pd.DataFrame({'coluna':df.columns,'tipo':df.dtypes.astype(str).values}),use_container_width=True)
-    st.download_button('Exportar registros filtrados (CSV)',filtered.to_csv(index=False).encode('utf-8'),'cx_filtrado.csv','text/csv')
+    c1.metric("ROC-AUC",str(score["roc_auc"]) if score["roc_auc"] is not None else "N/A")
+    c2.metric("Average Precision",str(score["average_precision"]))
+    c3.metric("Prevalência do teste",f"{score['prevalence']*100:.1f}%")
+    st.caption("Treinamento usa o conjunto completo, com teste temporal. Filtros são aplicados somente à tabela de scores, não ao treinamento.")
+    pred_view=pred[pred.topic.isin(topics)&pred.channel.isin(channels)]
+    if len(dates)==2:
+        pred_view=pred_view[pred_view.date.dt.date.between(start,end)]
+    st.dataframe(pred_view.head(100),use_container_width=True,hide_index=True)
+with tab_quality:
+    errors=validate_data(df)
+    l,r=st.columns(2)
+    l.metric("Registros avaliados",len(df))
+    r.metric("Erros detectados",len(errors))
+    if errors:
+        st.error("; ".join(errors))
+    else:
+        st.success("Validações implementadas aprovadas. Isto não substitui testes completos de contrato e integridade.")
+    st.dataframe(pd.DataFrame({"coluna":df.columns,"tipo":df.dtypes.astype(str).values,"nulos":df.isna().sum().values}),use_container_width=True,hide_index=True)
+    st.download_button("⬇ Exportar registros filtrados (CSV)",subset.to_csv(index=False).encode("utf-8"),"cx_filtrado.csv","text/csv")
