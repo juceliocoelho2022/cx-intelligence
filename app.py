@@ -8,6 +8,7 @@ from src.pipeline import get_or_create, kpis, validate_data
 from src.database import load_tickets
 from src.model import train_and_evaluate
 from src.nlp import train_sentiment, classify_message, compare_models
+from src.anomalies import detect_volume_anomalies, weekly_volumes
 
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
@@ -50,7 +51,7 @@ if len(dates)==2:
 st.sidebar.divider()
 st.sidebar.caption("🔒 Dataset sintético · Sem dados pessoais reais")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
-st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v0.2</div>
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v0.5</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
 if subset.empty:
@@ -66,7 +67,7 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
     slot.metric(name,value,help=tip)
 st.markdown('<div class="note">🔎 Todos os números são sintéticos. * Reincidência e sentimento são rótulos simulados. A taxa de resolução não mede FCR e o projeto não mede NPS nem churn real.</div>',unsafe_allow_html=True)
-tab_overview,tab_voice,tab_risk,tab_nlp,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🛡️ Qualidade dos dados"])
+tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
     l,r=st.columns(2)
@@ -136,6 +137,35 @@ with tab_nlp:
     with st.expander("Matriz de confusão (linhas reais × colunas previstas)"):
         st.dataframe(matrix, use_container_width=True)
     st.caption("Os campos sentiment e repeat_contact_30d dos tickets continuam sintéticos; este classificador não os produziu.")
+
+with tab_alerts:
+    st.subheader("Detecção explicável de picos de atendimento")
+    st.caption("Monitoramento histórico por semana ISO e assunto. Regras heurísticas, não previsão e não inferência causal.")
+    st.info("Regra: no mínimo 4 semanas completas de histórico, baseline >= 5, aumento >= 50% e pelo menos 5 tickets adicionais. Semanas iniciais/finais incompletas são descartadas.")
+    history = df[df.topic.isin(topics) & df.channel.isin(channels)].copy()
+    # Calculate a comparable baseline using the full historical date range,
+    # then show only alerts falling within the requested display window.
+    alerts = detect_volume_anomalies(history)
+    if len(dates) == 2:
+        alerts = alerts[alerts.week_start.dt.date.between(start, end)]
+    n_high = int(alerts.severity.eq("Alta").sum()) if not alerts.empty else 0
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Alertas identificados", len(alerts))
+    c2.metric("Alertas de alta intensidade", n_high)
+    c3.metric("Assuntos com alertas", alerts.topic.nunique() if not alerts.empty else 0)
+    if alerts.empty:
+        st.info("Nenhum pico elegível detectado para o recorte. Isto não comprova ausência de problemas ou cobertura de dados completa.")
+    else:
+        st.dataframe(alerts, use_container_width=True, hide_index=True)
+        st.download_button("⬇ Exportar alertas (CSV)", alerts.to_csv(index=False).encode("utf-8"),
+                           "cx_alertas_sinteticos.csv", "text/csv")
+    weeks = weekly_volumes(history)
+    if not weeks.empty:
+        fig_alert = px.line(weeks, x="week_start", y="volume", color="topic", markers=True,
+                            title="Volume semanal de tickets por assunto",
+                            labels={"week_start": "Início da semana", "volume": "Tickets", "topic": "Assunto"})
+        chart(fig_alert)
+    st.caption("Sem evidência de cobertura diária da ingestão, ausência de eventos não comprova ausência de chamados. Valide sempre com a operação de CX.")
 
 with tab_quality:
     errors=validate_data(df)
