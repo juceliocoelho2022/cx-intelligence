@@ -1,4 +1,4 @@
-"""CX Intelligence — dashboard executivo v0.2 (dados integralmente sintéticos)."""
+"""CX Intelligence — dashboard executivo v0.8 (dados integralmente sintéticos)."""
 import os
 import pandas as pd
 import plotly.express as px
@@ -11,6 +11,7 @@ from src.nlp import train_sentiment, classify_message, compare_models
 from src.anomalies import detect_volume_anomalies, weekly_volumes
 from src.insights import segment_insights
 from src.reports import build_report, render_markdown
+from src.audit import audit_manifest, export_manifest
 
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
@@ -53,7 +54,7 @@ if len(dates)==2:
 st.sidebar.divider()
 st.sidebar.caption("🔒 Dataset sintético · Sem dados pessoais reais")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
-st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v0.7</div>
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v0.8</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
 if subset.empty:
@@ -206,9 +207,16 @@ with tab_report:
     c.metric("Alertas heurísticos",report["alerts_count"])
     origin = "PostgreSQL (dados sintéticos)" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local (dados sintéticos)"
     memo=render_markdown(report,source_label=origin)
+    manifest=audit_manifest(subset,report,source="synthetic_postgres" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "synthetic_csv")
     st.markdown(memo)
     st.download_button("⬇ Baixar relatório executivo (.md)",memo.encode("utf-8"),
                        "cx_relatorio_executivo.md","text/markdown")
+    st.download_button("⬇ Baixar manifesto de auditoria (.json)",export_manifest(manifest).encode("utf-8"),
+                       "cx_manifesto_auditoria.json","application/json")
+    with st.expander("Rastreabilidade e verificações analíticas"):
+        st.code(manifest["dataset_sha256"],language=None)
+        st.json(manifest)
+        st.caption("Hash SHA-256 reproduzível do recorte; não é assinatura nem certificação de origem.")
     st.info("As recomendações não são decisões automatizadas. Valide amostras, integridade, sazonalidade e hipóteses junto ao time de CX.")
 
 with tab_quality:
