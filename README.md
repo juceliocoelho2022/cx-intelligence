@@ -1,5 +1,10 @@
 # CX Intelligence | Customer Experience Analytics
 
+![Capa conceitual do projeto CX Intelligence — Customer Experience Analytics](assets/cx-intelligence-cover.png)
+
+> **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
+
+
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-MVP-orange)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
