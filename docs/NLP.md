@@ -4,7 +4,7 @@
 Demonstrar a sequência `mensagem sintética -> TF-IDF -> classificador -> avaliação -> previsão exploratória`. Nenhuma conversa real ou dado confidencial é utilizado.
 
 ## Dados
-30 frases **redigidas artificialmente** em português, dez por classe (`positivo`, `neutro`, `negativo`). O conjunto é muito pequeno, com vocabulário padronizado e padrões artificiais. O classificador **não** é uma solução operacional de sentiment analysis.
+60 frases **redigidas artificialmente** em português, vinte por classe (`positivo`, `neutro`, `negativo`). O conjunto é pequeno, com vocabulário padronizado e padrões artificiais. O classificador **não** é uma solução operacional de sentiment analysis.
 
 ## Metodologia
 - Divisão estratificada de 70% treinamento e 30% teste com semente fixa 42, **antes** de ajustar o TF-IDF.
@@ -27,5 +27,5 @@ python -m src.nlp
 streamlit run app.py
 ```
 
-## Próximos passos científicos
+## Comparação de modelos — v0.4.1\n\nA função `compare_models()` compara LogisticRegression, MultinomialNB e LinearSVC usando **a mesma separação estratificada** (42 exemplos para treino, 18 para teste). A tabela inclui F1 macro, acurácia e erros por mensagem. A comparação é exploratória: selecionar o melhor modelo com base nesses mesmos 18 exemplos introduz viés de seleção. Antes de alegar melhoria generalizável, usar conjunto externo intocado e dados mais representativos.\n\n## Próximos passos científicos
 Dataset maior com variação linguística, linguagem informal/ambígua, revisão de rótulos, validação cruzada repetida, F1 macro com intervalos de confiança, análises de erros, teste fora da distribuição, privacidade e avaliação de drift. Só após validações independentes comparar com modelos de linguagem maiores.
