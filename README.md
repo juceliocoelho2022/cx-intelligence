@@ -5,7 +5,7 @@
 > **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v0.8-orange)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.0--rc-orange)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
@@ -27,6 +27,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Diagnóstico de segmentos](docs/ROOT_CAUSE_ANALYSIS.md) | Lacunas de CSAT e resolução, priorização e hipóteses de investigação |
 | [Relatório executivo](docs/EXECUTIVE_REPORT.md) | Sumário gerencial, indicadores, descobertas e exportação Markdown |
 | [Rastreabilidade analítica](docs/AUDITABILITY.md) | Verificações de consistência, SHA-256 e manifesto JSON |
+| [Roteiro de demonstração](docs/PORTFOLIO_DEMO.md) | Pitch, evidências e checklist de aceite da release |
 
 ## Stack
 `Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
@@ -84,8 +85,11 @@ A aba **Relatório executivo** gera uma síntese reproduzível do recorte filtra
 
 A aba **Relatório executivo** agora também exporta um **manifesto JSON** com hash SHA-256 determinístico do recorte, checagens de consistência entre KPIs e relatório, origem declarada e tamanho da amostra. O hash não é uma assinatura nem um histórico de auditoria persistido. Consulte [as regras e limitações](docs/AUDITABILITY.md).
 
-## Próximas entregas
-`v0.2` UX e validação robusta → `v0.3` PostgreSQL + ETL + Docker → `v0.4` NLP avaliado → `v0.5` alvos temporais reais na simulação e calibração → `v1.0` CI, alertas auditáveis e demo online.
+## Release de portfólio — v1.0 candidata
+
+A versão candidata inclui teste de integração sintética (pipeline → relatório → manifesto), roteiro de demonstração e pipeline de CI para Python 3.10, 3.12 e 3.14. **A aprovação da release depende de verificar Actions, execução visual e exportações na revisão publicada.** Não há deploy público confirmado.
+
+Veja [roteiro e critérios de aceite](docs/PORTFOLIO_DEMO.md).
 
 ## Autor
 [Jucelio Coelho](https://github.com/juceliocoelho2022) · Projeto educacional e técnico. Sem dados de clientes reais. Licença de reutilização ainda não definida.
