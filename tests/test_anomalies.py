@@ -1,13 +1,14 @@
 import pandas as pd
+from datetime import timedelta
 import pytest
 from src.anomalies import detect_volume_anomalies
 
 def build_counts(counts, start="2026-01-05"):
     rows=[]
     for offset, n in enumerate(counts):
-        monday=pd.Timestamp(start)+pd.Timedelta(weeks=int(offset))
+        monday=pd.Timestamp(start)+timedelta(weeks=int(offset))
         for i in range(n):
-            rows.append({"topic": "Pix", "ticket_id": f"{offset}-{i}", "date": monday+pd.Timedelta(days=int(i % 7))})
+            rows.append({"topic": "Pix", "ticket_id": f"{offset}-{i}", "date": monday+timedelta(days=int(i % 7))})
     return pd.DataFrame(rows)
 
 def test_spike_after_four_completed_weeks():
