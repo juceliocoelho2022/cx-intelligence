@@ -9,6 +9,7 @@ from src.database import load_tickets
 from src.model import train_and_evaluate
 from src.nlp import train_sentiment, classify_message, compare_models
 from src.anomalies import detect_volume_anomalies, weekly_volumes
+from src.insights import segment_insights
 
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
@@ -51,7 +52,7 @@ if len(dates)==2:
 st.sidebar.divider()
 st.sidebar.caption("🔒 Dataset sintético · Sem dados pessoais reais")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
-st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v0.5</div>
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v0.6</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
 if subset.empty:
@@ -67,7 +68,7 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
     slot.metric(name,value,help=tip)
 st.markdown('<div class="note">🔎 Todos os números são sintéticos. * Reincidência e sentimento são rótulos simulados. A taxa de resolução não mede FCR e o projeto não mede NPS nem churn real.</div>',unsafe_allow_html=True)
-tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🛡️ Qualidade dos dados"])
+tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
     l,r=st.columns(2)
@@ -166,6 +167,32 @@ with tab_alerts:
                             labels={"week_start": "Início da semana", "volume": "Tickets", "topic": "Assunto"})
         chart(fig_alert)
     st.caption("Sem evidência de cobertura diária da ingestão, ausência de eventos não comprova ausência de chamados. Valide sempre com a operação de CX.")
+
+with tab_insights:
+    st.subheader("Diagnóstico de segmentos: assunto × canal")
+    st.caption("Análise descritiva de diferenças — não estabelece causas nem significância estatística.")
+    min_n = st.slider("Mínimo de tickets por segmento", min_value=10, max_value=100, value=30, step=10)
+    insights = segment_insights(subset, min_sample=min_n)
+    if insights.empty:
+        st.info("Nenhum segmento atingiu o mínimo de registros no recorte. Amplie o período ou reduza o limite.")
+    else:
+        a,b,c=st.columns(3)
+        a.metric("Segmentos elegíveis",len(insights))
+        b.metric("Investigações prioritárias",int(insights.priority.eq("Prioritário").sum()))
+        c.metric("Investigações adicionais",int(insights.priority.eq("Investigar").sum()))
+        fig_insights=px.scatter(insights, x="csat_gap_pp", y="resolution_gap_pp",
+                color="priority", size="tickets", hover_name="topic",
+                hover_data=["channel","tickets","csat_pct","resolved_pct"],
+                title="Diferença versus total filtrado (pontos percentuais)",
+                labels={"csat_gap_pp":"Diferença de CSAT (pp)","resolution_gap_pp":"Diferença de resolução (pp)"},
+                color_discrete_map={"Prioritário":COLORS["red"],"Investigar":COLORS["orange"],"Monitorar":COLORS["cyan"]})
+        fig_insights.add_vline(x=0,line_dash="dot",line_color="#8795A8")
+        fig_insights.add_hline(y=0,line_dash="dot",line_color="#8795A8")
+        chart(fig_insights)
+        st.dataframe(insights, use_container_width=True, hide_index=True)
+        st.download_button("⬇ Exportar diagnóstico CSV", insights.to_csv(index=False).encode("utf-8"),
+                           "cx_diagnostico_sintetico.csv","text/csv")
+        st.info("Recomendação: discutir segmentos sinalizados com CX, revisar mudanças de processo e analisar séries históricas antes de qualquer intervenção.")
 
 with tab_quality:
     errors=validate_data(df)
