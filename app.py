@@ -10,6 +10,7 @@ from src.model import train_and_evaluate
 from src.nlp import train_sentiment, classify_message, compare_models
 from src.anomalies import detect_volume_anomalies, weekly_volumes
 from src.insights import segment_insights
+from src.reports import build_report, render_markdown
 
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
@@ -52,7 +53,7 @@ if len(dates)==2:
 st.sidebar.divider()
 st.sidebar.caption("🔒 Dataset sintético · Sem dados pessoais reais")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
-st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v0.6</div>
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v0.7</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
 if subset.empty:
@@ -68,7 +69,7 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
     slot.metric(name,value,help=tip)
 st.markdown('<div class="note">🔎 Todos os números são sintéticos. * Reincidência e sentimento são rótulos simulados. A taxa de resolução não mede FCR e o projeto não mede NPS nem churn real.</div>',unsafe_allow_html=True)
-tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","🛡️ Qualidade dos dados"])
+tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_report,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📋 Relatório executivo","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
     l,r=st.columns(2)
@@ -193,6 +194,22 @@ with tab_insights:
         st.download_button("⬇ Exportar diagnóstico CSV", insights.to_csv(index=False).encode("utf-8"),
                            "cx_diagnostico_sintetico.csv","text/csv")
         st.info("Recomendação: discutir segmentos sinalizados com CX, revisar mudanças de processo e analisar séries históricas antes de qualquer intervenção.")
+
+with tab_report:
+    st.subheader("Relatório executivo de Customer Experience")
+    st.caption("Síntese reproduzível, sem LLM. Achados são descritivos e as ações são hipóteses para investigação.")
+    report_history = df[df.topic.isin(topics) & df.channel.isin(channels)].copy()
+    report = build_report(subset, history=report_history)
+    a,b,c=st.columns(3)
+    a.metric("Chamados avaliados",report["metrics"]["total_tickets"])
+    b.metric("Segmentos prioritários",report["priority_count"])
+    c.metric("Alertas heurísticos",report["alerts_count"])
+    origin = "PostgreSQL (dados sintéticos)" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local (dados sintéticos)"
+    memo=render_markdown(report,source_label=origin)
+    st.markdown(memo)
+    st.download_button("⬇ Baixar relatório executivo (.md)",memo.encode("utf-8"),
+                       "cx_relatorio_executivo.md","text/markdown")
+    st.info("As recomendações não são decisões automatizadas. Valide amostras, integridade, sazonalidade e hipóteses junto ao time de CX.")
 
 with tab_quality:
     errors=validate_data(df)
