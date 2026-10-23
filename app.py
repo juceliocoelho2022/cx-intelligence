@@ -7,6 +7,7 @@ import streamlit as st
 from src.pipeline import get_or_create, kpis, validate_data
 from src.database import load_tickets
 from src.model import train_and_evaluate
+from src.nlp import train_sentiment, classify_message
 
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
@@ -65,7 +66,7 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
     slot.metric(name,value,help=tip)
 st.markdown('<div class="note">🔎 Todos os números são sintéticos. * Reincidência e sentimento são rótulos simulados. A taxa de resolução não mede FCR e o projeto não mede NPS nem churn real.</div>',unsafe_allow_html=True)
-tab_overview,tab_voice,tab_risk,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🛡️ Qualidade dos dados"])
+tab_overview,tab_voice,tab_risk,tab_nlp,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
     l,r=st.columns(2)
@@ -103,6 +104,34 @@ with tab_risk:
     if len(dates)==2:
         pred_view=pred_view[pred_view.date.dt.date.between(start,end)]
     st.dataframe(pred_view.head(100),use_container_width=True,hide_index=True)
+@st.cache_resource
+def load_nlp_model():
+    return train_sentiment()
+
+with tab_nlp:
+    st.subheader("Classificação exploratória de sentimentos")
+    st.warning("Protótipo treinado com apenas 30 frases fictícias. Não avaliado para uso com clientes reais, linguagem diversa ou decisões operacionais.")
+    model_nlp, eval_nlp = load_nlp_model()
+    c1, c2, c3 = st.columns(3)
+    c1.metric("F1 macro", f"{eval_nlp['f1_macro']:.3f}")
+    c2.metric("Acurácia", f"{eval_nlp['accuracy']:.3f}")
+    c3.metric("Mensagens no teste", str(eval_nlp["test_rows"]))
+    st.caption("TF-IDF + Regressão Logística. Divisão estratificada 70/30; probabilidades não calibradas.")
+    message = st.text_area("Digite uma frase fictícia para classificar", value="O atendimento foi rápido e resolveu minha dúvida", max_chars=500)
+    if st.button("Analisar sentimento", key="run_nlp"):
+        try:
+            result = classify_message(model_nlp, message)
+            st.success(f"Classe estimada: {result['sentiment']}")
+            st.caption(f"Maior probabilidade estimada (não calibrada): {result['score']:.1%}")
+            prob_df = pd.DataFrame({"sentimento": list(result["probabilities"].keys()), "probabilidade": list(result["probabilities"].values())})
+            chart(px.bar(prob_df, x="sentimento", y="probabilidade", title="Distribuição de probabilidades do protótipo", color_discrete_sequence=[COLORS["orange"]]))
+        except ValueError as exc:
+            st.error(str(exc))
+    matrix=pd.DataFrame(eval_nlp["confusion"], index=eval_nlp["labels"], columns=eval_nlp["labels"])
+    with st.expander("Matriz de confusão (linhas reais × colunas previstas)"):
+        st.dataframe(matrix, use_container_width=True)
+    st.caption("Os campos sentiment e repeat_contact_30d dos tickets continuam sintéticos; este classificador não os produziu.")
+
 with tab_quality:
     errors=validate_data(df)
     l,r=st.columns(2)
