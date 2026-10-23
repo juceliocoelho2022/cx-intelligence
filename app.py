@@ -7,7 +7,7 @@ import streamlit as st
 from src.pipeline import get_or_create, kpis, validate_data
 from src.database import load_tickets
 from src.model import train_and_evaluate
-from src.nlp import train_sentiment, classify_message
+from src.nlp import train_sentiment, classify_message, compare_models
 
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
@@ -110,13 +110,13 @@ def load_nlp_model():
 
 with tab_nlp:
     st.subheader("Classificação exploratória de sentimentos")
-    st.warning("Protótipo treinado com apenas 30 frases fictícias. Não avaliado para uso com clientes reais, linguagem diversa ou decisões operacionais.")
+    st.warning("Protótipo treinado com 60 frases fictícias. Amostra pequena e artificial; não utilizar em operações reais.")
     model_nlp, eval_nlp = load_nlp_model()
     c1, c2, c3 = st.columns(3)
     c1.metric("F1 macro", f"{eval_nlp['f1_macro']:.3f}")
     c2.metric("Acurácia", f"{eval_nlp['accuracy']:.3f}")
     c3.metric("Mensagens no teste", str(eval_nlp["test_rows"]))
-    st.caption("TF-IDF + Regressão Logística. Divisão estratificada 70/30; probabilidades não calibradas.")
+    st.caption("TF-IDF + Regressão Logística. Divisão estratificada 70/30 (18 frases de teste); probabilidades não calibradas.")
     message = st.text_area("Digite uma frase fictícia para classificar", value="O atendimento foi rápido e resolveu minha dúvida", max_chars=500)
     if st.button("Analisar sentimento", key="run_nlp"):
         try:
@@ -127,6 +127,11 @@ with tab_nlp:
             chart(px.bar(prob_df, x="sentimento", y="probabilidade", title="Distribuição de probabilidades do protótipo", color_discrete_sequence=[COLORS["orange"]]))
         except ValueError as exc:
             st.error(str(exc))
+    comparison, mistakes = compare_models()
+    st.markdown("#### Comparativo de algoritmos — mesmo conjunto de teste")
+    st.dataframe(comparison.sort_values("f1_macro", ascending=False), use_container_width=True, hide_index=True)
+    with st.expander("Investigar erros de classificação"):
+        st.dataframe(mistakes, use_container_width=True, hide_index=True)
     matrix=pd.DataFrame(eval_nlp["confusion"], index=eval_nlp["labels"], columns=eval_nlp["labels"])
     with st.expander("Matriz de confusão (linhas reais × colunas previstas)"):
         st.dataframe(matrix, use_container_width=True)
