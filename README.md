@@ -1,62 +1,49 @@
-# CX Intelligence — Customer Experience Analytics
+# CX Intelligence | Customer Experience Analytics
 
-Projeto de portfólio independente, inspirado nas competências da posição **Data Analyst I — CX Data**. **Não é um projeto oficial do Banco Inter, nem utiliza dados de clientes reais.**
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-MVP-orange)
 
-## Problema de negócio
-Um banco digital fictício precisa analisar tendências de atendimento, satisfação e recorrência e priorizar investigações sobre fricções na jornada.
+> **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
-## Entregas do MVP
-- Dataset determinístico e **100% sintético**, gerado com NumPy e pandas;
-- Pipeline com verificações de integridade (IDs, nulos, domínios e faixas);
-- Indicadores de CX, volume e segmentação por canal/assunto;
-- Consultas SQL PostgreSQL com CTEs e funções de janela;
-- Dashboard Streamlit com filtros e exportação;
-- Classificador Logistic Regression com holdout temporal, ROC-AUC e Average Precision;
-- Testes automatizados com pytest.
+Plataforma demonstrativa de Customer Experience Analytics aplicada ao setor financeiro, desenvolvida como **projeto independente de portfólio**. São utilizados apenas dados inteiramente sintéticos; não há vínculo oficial com o Banco Inter.
 
-## Requisitos
-Python 3.10+.
+## Visão executiva
+Uma instituição financeira fictícia precisa medir satisfação e resolução, investigar motivos e canais de atendimento e estimar propensão simulada à reincidência. O MVP fornece exploração com Streamlit e Plotly, preparação/qualidade em Python + pandas, consultas analíticas SQL para PostgreSQL e baseline de classificação com scikit-learn.
 
-```bash
+## Mapa da documentação
+| Documento | Conteúdo |
+| --- | --- |
+| [Regras de negócio e requisitos](docs/BUSINESS_RULES.md) | Personas, RFs, RNs, critérios de aceitação e limites |
+| [Arquitetura e decisões técnicas](docs/ARCHITECTURE.md) | Fluxo de dados, módulos, ADRs, segurança e evolução |
+| [Dicionário de dados e KPIs](docs/DATA_DICTIONARY.md) | Campos, fórmulas, denominadores, unidades e ressalvas |
+| [Governança, testes e roadmap](docs/GOVERNANCE_AND_ROADMAP.md) | LGPD, avaliação, riscos, qualidade e plano de versões |
+
+## Stack
+`Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
+
+## Execução (PowerShell)
+```powershell
 python -m venv .venv
-# Windows PowerShell:
-.venv\Scripts\Activate.ps1
-# Linux/macOS:
-# source .venv/bin/activate
-pip install -r requirements.txt
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 python -m src.pipeline
 python -m src.model
 python -m pytest -q
 streamlit run app.py
 ```
 
-O arquivo `data/cx_tickets.csv` é criado automaticamente no primeiro uso. Execute os comandos na raiz do repositório.
+Abra `http://localhost:8501`. O CSV `data/cx_tickets.csv` é gerado na primeira execução.
 
-## Métricas e ressalvas
-- **CSAT positivo (proxy):** % de notas 4 ou 5, entre os registros simulados.
-- **Resolved rate:** % de tickets marcados como resolvidos. **Não é FCR**, pois não existe informação suficiente para aferir resolução no primeiro contato.
-- **Reincidência em 30 dias:** campo-alvo sintético para fins de aprendizagem. Não foi derivado de eventos longitudinais observados.
-- **Sentimento:** rótulo sintético; não há modelo NLP real no MVP.
-- **ROC-AUC e Average Precision:** reportadas em holdout temporal. Não comprovam desempenho em clientes reais.
-- `previous_tickets` usa apenas histórico anterior do cliente na ordenação por data e ticket, para evitar vazamento temporal direto.
+## Escopo do MVP e interpretação
+- Gerador determinístico com **4.000 tickets sintéticos** por padrão; resultados não descrevem clientes reais.
+- CSAT positivo: % de avaliações simuladas 4 ou 5.
+- Taxa de resolução: proporção de tickets marcados como resolvidos — **não é FCR**.
+- Duração: medida em **horas**.
+- Reincidência 30d: variável-alvo sintética — **não é churn observado**.
+- Sentimento: rótulo sintético — **ainda não é NLP aplicado a conversas**.
+- Predição: regressão logística com holdout temporal e métricas ROC-AUC / Average Precision, sem validade externa em operações reais.
 
-## SQL
-O diretório `sql/` contém `schema.sql` e `analysis.sql`. É possível carregar o CSV em PostgreSQL com `\copy cx_tickets FROM 'data/cx_tickets.csv' WITH (FORMAT csv, HEADER true)` no psql, a partir de uma máquina na qual o arquivo esteja acessível.
+## Próximas entregas
+`v0.2` UX e validação robusta → `v0.3` PostgreSQL + ETL + Docker → `v0.4` NLP avaliado → `v0.5` alvos temporais reais na simulação e calibração → `v1.0` CI, alertas auditáveis e demo online.
 
-## Próxima evolução
-1. Criar eventos reais de simulação para derivar reincidência observável em 30 dias, com censura dos registros recentes;
-2. Treinar baseline com validação rolling-window, matriz de confusão e calibração de probabilidades;
-3. Construir pipeline NLP com textos fictícios e avaliação manual de classificação de sentimento;
-4. Criar alertas estatísticos de anomalias e análise de causa raiz;
-5. Adicionar Docker Compose e PostgreSQL como armazenamento de produção demonstrativa;
-6. Documentar governança, mascaramento, retenção, LGPD e monitoramento de drift.
-
-## Regras de negócio
-- Um ticket possui identificador único e pertence a um cliente fictício.
-- CSAT varia de 1 a 5; notas 4–5 são consideradas positivas para o KPI.
-- O dashboard mostra apenas dados sintéticos e separa indicadores descritivos de predição.
-- Scores preditivos representam probabilidade estimada **apenas dentro da simulação**.
-- O projeto não deve importar ou divulgar informações pessoais reais ou atribuir resultados à empresa citada na vaga.
-
-## Stack
-Python, pandas, NumPy, scikit-learn, Streamlit, Plotly, PostgreSQL SQL (scripts), pytest, Git.
+## Autor
+[Jucelio Coelho](https://github.com/juceliocoelho2022) · Projeto educacional e técnico. Sem dados de clientes reais. Licença de reutilização ainda não definida.
