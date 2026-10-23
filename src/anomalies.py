@@ -45,8 +45,6 @@ def detect_volume_anomalies(df, baseline_weeks=MIN_BASELINE, ratio=THRESHOLD_RAT
     first_complete = first_date if first_date.weekday() == 0 else first_date + pd.Timedelta(days=7-first_date.weekday())
     # Last eligible week starts Monday and finishes no later than the last observed Sunday.
     last_sunday = last_date - pd.Timedelta(days=int((last_date.weekday() + 1) % 7))
-    if last_date.weekday() != 6:
-        last_sunday -= pd.Timedelta(days=7)
     last_complete = last_sunday - pd.Timedelta(days=6)
     weekly = weekly[weekly.week_start.between(first_complete, last_complete)].copy()
     if weekly.empty:
