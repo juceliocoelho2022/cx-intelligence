@@ -5,7 +5,7 @@
 > **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.1--dev-orange)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.2--dev-orange)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
@@ -29,6 +29,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Rastreabilidade analítica](docs/AUDITABILITY.md) | Verificações de consistência, SHA-256 e manifesto JSON |
 | [Roteiro de demonstração](docs/PORTFOLIO_DEMO.md) | Pitch, evidências e checklist de aceite da release |
 | [Histórico de eventos v1.1](docs/TICKET_HISTORY.md) | Eventos imutáveis, transições, idempotência e consultas por data |
+| [Kaggle externo v1.2](docs/KAGGLE_INTEGRATION.md) | CSV externo, minimização de dados, validação e análise separada |
 
 ## Stack
 `Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
@@ -105,6 +106,21 @@ streamlit run app.py
 ```
 
 Aba **Histórico de tickets**: linha do tempo dos eventos registrados e fotografia temporal. Os horários da demo foram **inventados**; a tabela atual de tickets não contém informação suficiente para reconstruir mudanças anteriores. O status antigo `resolved` não é sincronizado pela nova tabela. Consulte [documentação detalhada](docs/TICKET_HISTORY.md). Testes de banco/trigger e validação visual em PostgreSQL ainda são pendentes nesta versão de desenvolvimento.
+
+## Dataset externo Kaggle — v1.2 (em validação)
+
+Integração opcional com o [Customer Support Ticket Dataset](https://www.kaggle.com/datasets/suraj520/customer-support-ticket-dataset). **O CSV é baixado manualmente pelo usuário**, preservado fora do Git e lido apenas por uma lista explícita de campos operacionais. Nomes, e-mails e textos livres não são armazenados. Dados externos permanecem em tabelas PostgreSQL separadas; não alteram os KPIs do dataset sintético nem os modelos existentes.
+
+```powershell
+# Baixe e extraia o CSV do Kaggle em data/raw/customer_support_tickets.csv
+python -m src.external_kaggle "data/raw/customer_support_tickets.csv"
+docker compose up -d postgres
+python -m src.external_kaggle "data/raw/customer_support_tickets.csv" --write
+$env:CX_DATA_SOURCE = 'postgres'
+streamlit run app.py
+```
+
+A aba **Kaggle externo** mostra contagens e taxas usando denominadores explícitos. A data de compra não é usada como data de atendimento, e a ausência de nota CSAT permanece nula. **Verifique a licença do dataset na fonte antes de republicá-lo.** Consulte [regras e limitações](docs/KAGGLE_INTEGRATION.md).
 
 ## Autor
 [Jucelio Coelho](https://github.com/juceliocoelho2022) · Projeto educacional e técnico. Sem dados de clientes reais. Licença de reutilização ainda não definida.
