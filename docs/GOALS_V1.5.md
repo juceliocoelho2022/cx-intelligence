@@ -7,7 +7,7 @@
 
 A aba **🎯 Metas v1.5** relaciona indicadores sintéticos a metas de referência e ações **propostas** no navegador. Ela é um protótipo de acompanhamento de gestão, **não** um sistema de tarefas real, integração empresarial ou avaliação de pessoas.
 
-A implementação nunca salva ações em PostgreSQL, não envia e-mails e não agenda lembretes. Cada visitante tem sua própria memória de sessão do Streamlit; ao perder a sessão o plano desaparece. Exporte `JSON` ou `Markdown` para guardar um exemplo offline; **não existe importação de volta ao app**.
+A implementação nunca salva ações em PostgreSQL, não envia e-mails e não agenda lembretes. Cada visitante tem sua própria memória de sessão do Streamlit; ao perder a sessão o plano desaparece. Exporte `JSON` ou `Markdown` para guardar um exemplo offline. A aba agora permite **restaurar ações de um JSON v1.5 válido**, substituindo a lista atual da sessão. Não há sincronização automática, persistência no banco nem importação de Markdown.
 
 ## Regras de negócio e fórmulas
 
@@ -48,6 +48,13 @@ Planejada -> Em andamento -> Concluída
 
 Não é permitido concluir diretamente uma ação planejada nem reabrir uma concluída. Os eventos antigos não são alterados; a função retorna uma nova lista. Prazos anteriores à criação e mudanças com data anterior ao evento mais recente são recusados.
 
+### Correção de ações e restauração após perder a sessão
+
+- Se o título foi digitado incorretamente, abra **✏️ Corrigir título ou hipótese de uma ação**, selecione seu ID e salve a revisão. A atualização mantém o mesmo ID, o escopo e o histórico de estados, com registro separado de **revisões textuais** no JSON exportado.
+- Para recuperar uma ação anteriormente exportada, abra **📥 Restaurar plano de ação exportado (.json)**, escolha o JSON v1.5 e clique em **Restaurar ações nesta sessão**. A importação substitui as ações atualmente abertas — portanto exporte o plano existente antes de importar outro.
+- O importador rejeita arquivos maiores que 200 KB, fontes externas, versões diferentes, IDs duplicados, eventos inconsistentes, estados inválidos e campos textuais fora dos limites. Importa **somente as ações**: os indicadores e metas são recalculados a partir dos dados sintéticos e filtros atuais.
+- Um título editado não modifica automaticamente o **escopo original**. Por exemplo, uma ação sobre Pix criada com todos os assuntos selecionados mantém o recorte amplo no histórico. Para uma nova ação restrita a Pix, filtre o assunto **Pix** antes de criá-la.
+
 ### Exportação e segurança
 
 - JSON UTF-8 com campos explicitamente estruturados, serialização determinística (`sort_keys=True`) e `schema_version: 1.5.0-beta`; valores não finitos são rejeitados.
@@ -57,7 +64,7 @@ Não é permitido concluir diretamente uma ação planejada nem reabrir uma conc
 
 ## Testes e critérios de aceite
 
-`tests/test_cx_goals.py` cobre direção do alvo, limites, ausência/amostra insuficiente, dados inválidos, IDs, transições, histórico, ausência de mutação, exportações determinísticas e Markdown seguro. O Chrome mobile deve verificar controles, entrada de ação e arquivos exportados.
+`tests/test_cx_goals.py` cobre direção do alvo, limites, ausência/amostra insuficiente, dados inválidos, IDs, transições, histórico, ausência de mutação, exportações determinísticas, Markdown seguro, edição de ações e restauração segura a partir do JSON. O Chrome mobile verifica criação, mudança de estado, revisão de título, download e reimportação do plano.
 
 ### Executar localmente (Windows PowerShell)
 
