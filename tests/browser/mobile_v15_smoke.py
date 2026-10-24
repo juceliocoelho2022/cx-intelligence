@@ -29,9 +29,19 @@ def check_v15_mobile():
             expect(page.get_by_text("Meta ilustrativa de CSAT (%)")).to_be_visible()
             expect(page.get_by_text("Plano de ação demonstrativo")).to_be_visible()
             expect(page.get_by_text("Nenhuma ação proposta ainda.")).to_be_visible()
-            page.get_by_role("textbox", name="Ação proposta (obrigatório; até 120 caracteres)").fill(
-                "Investigar fricção no atendimento Pix")
-            page.get_by_role("textbox", name="Hipótese a investigar (obrigatório; até 400 caracteres)").fill(
+            title_box = page.get_by_role(
+                "textbox", name="Ação proposta (obrigatório; até 120 caracteres)")
+            hypothesis_box = page.get_by_role(
+                "textbox", name="Hipótese a investigar (obrigatório; até 400 caracteres)")
+            title_box.fill("Investigar fricção no atendimento Pix")
+            # Reproduce the reported mistake: empty hypothesis must show a useful
+            # error without discarding the title the user already typed.
+            page.get_by_role("button", name="Adicionar ação ilustrativa").click()
+            expect(page.get_by_text(
+                "Não foi possível adicionar: Hipótese de investigação: campo obrigatório.",
+                exact=False)).to_be_visible(timeout=45000)
+            expect(title_box).to_have_value("Investigar fricção no atendimento Pix")
+            hypothesis_box.fill(
                 "Conferir jornadas e dúvidas recorrentes do processo ilustrativo.")
             page.get_by_role("button", name="Adicionar ação ilustrativa").click()
             expect(page.get_by_text("1 ação(ões) fictícia(s) registrada(s) apenas nesta sessão.")).to_be_visible(timeout=45000)
