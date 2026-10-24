@@ -50,6 +50,25 @@ Capturas reais enviadas pelo usuário mostram a aplicação acessível em smartp
 - O print **não** mostra a aba **📐 Analytics v1.3** com as três análises novas. Portanto, o aceite visual específico do módulo avançado **continua pendente**.
 - A eficácia da correção de sobreposição **ainda precisa ser verificada no Android após o deploy**. Os testes estáticos de CSS não substituem verificação real.
 
+## Aceite de responsividade — Chrome mobile em CI (24/10/2026)
+
+Foi criado um teste de navegador real em `tests/browser/mobile_v13_smoke.py`, executado pelo GitHub Actions em **Google Chrome headless com viewport 390 × 844 pixels**, `is_mobile=true` e toque habilitado:
+
+- [x] `v1.3 (beta)` e 4.000 tickets sintéticos renderizados;
+- [x] Barra lateral **recolhida automaticamente** em viewport estreita por `initial_sidebar_state="auto"`;
+- [x] Aba **📐 Analytics v1.3** navegável;
+- [x] As três seções de evolução semanal, benchmark e recontato 30 dias estão presentes;
+- [x] Barra flutuante `modebar` do Plotly oculta no viewport móvel;
+- [x] Controles visíveis **Canal → Assunto → Canal** acionados por cliques reais nos rótulos, com opções selecionadas confirmadas;
+- [x] Sem exceção Streamlit e sem erro JavaScript no navegador durante o smoke test.
+
+**Execução íntegra aprovada (Python 3.10/3.12/3.14 + mobile Chrome):**
+https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40106300542
+
+Log: `PASS: v1.3 Analytics mobile viewport 390x844; 3 sections, real Plotly toolbar hidden, dimension switch.`
+
+**Importante:** trata-se de **emulação de viewport móvel em Chrome, não teste físico no Android do usuário**. As capturas físicas anteriores confirmaram apenas a visão executiva e motivaram a correção de layout. Uma inspeção da aba avançada no dispositivo físico é desejável, mas o fluxo de interface em largura móvel já conta com teste automatizado no CI.
+
 ## Critérios de aceite e próximos passos
 
 - [x] Módulo analítico `src/advanced_cx.py` criado.
@@ -59,8 +78,10 @@ Capturas reais enviadas pelo usuário mostram a aplicação acessível em smartp
 - [x] Demo pública com dados exclusivamente sintéticos e teste de navegação.
 - [x] Trocar Canal → Assunto e confirmar atualização da visualização no desktop.
 - [x] Confirmação visual de abertura da v1.3 no smartphone e leitura dos cartões da visão executiva.
-- [ ] Inspecionar a aba **📐 Analytics v1.3** no smartphone com gráficos, tabelas e controles.
-- [ ] Confirmar no Android a correção de sobreposição de toolbar Plotly e o novo espaçamento dos cartões.
+- [x] Inspecionar a aba **📐 Analytics v1.3** em Chrome automatizado com viewport móvel 390 × 844 e controles reais.
+- [ ] Conferir manualmente essa aba no Android físico, quando possível.
+- [x] Confirmar a ausência de sobreposição da toolbar Plotly em Chrome com viewport móvel via verificação CSS computada.
+- [ ] Validar o espaçamento final dos cartões no Android físico.
 - [ ] Conferência visual manual da nova aba no Windows pelo responsável do projeto.
 - [ ] Avaliação de métricas temporais específicas com dados externos que realmente contenham eventos de atendimento, com origem e licença adequadas.
 - [ ] Decidir se a beta será promovida para tag/Release `v1.3.0`.
