@@ -476,13 +476,20 @@ with tab_goals:
     st.markdown("#### Plano de ação demonstrativo")
     if "v15_actions" not in st.session_state:
         st.session_state["v15_actions"] = []
-    with st.form("v15_add_action", clear_on_submit=True):
-        action_title = st.text_input("Ação proposta (até 120 caracteres)",
-                                     placeholder="Ex.: investigar motivos de insatisfação no fluxo Pix")
-        action_hypothesis = st.text_area(
-            "Hipótese a investigar (até 400 caracteres)",
-            placeholder="Ex.: verificar documentação e jornada antes de atribuir qualquer causa.",
+    # Keep user-entered text if validation fails, so the form can be corrected.
+    with st.form("v15_add_action", clear_on_submit=False):
+        action_title = st.text_input(
+            "Ação proposta (obrigatório; até 120 caracteres)",
+            placeholder="Ex.: investigar motivos de insatisfação no fluxo Pix",
+            max_chars=120,
         )
+        action_hypothesis = st.text_area(
+            "Hipótese a investigar (obrigatório; até 400 caracteres)",
+            placeholder="Ex.: analisar possíveis dificuldades na jornada Pix, sem pressupor a causa.",
+            max_chars=400,
+            help="Campo obrigatório. Escreva uma frase explicando o que deseja investigar; evite quebras de linha.",
+        )
+        st.caption("Os dois campos de texto são obrigatórios. O exemplo cinza é uma sugestão, não um texto preenchido.")
         action_left, action_right = st.columns(2)
         with action_left:
             action_metric = st.selectbox(
