@@ -16,7 +16,8 @@ from src.reports import build_report, render_markdown
 from src.bi_reports import compare_periods, render_bi_markdown, render_bi_html
 from src.cx_goals import (METRICS as GOAL_METRICS, ROLES as GOAL_ROLES,
     TRANSITIONS as GOAL_TRANSITIONS, evaluate_goals, create_action,
-    change_action_status, report_payload, export_plan_json, export_plan_markdown)
+    change_action_status, edit_action, load_plan_actions, report_payload,
+    export_plan_json, export_plan_markdown)
 from src.audit import audit_manifest, export_manifest
 from src.ticket_events import schema_exists, load_event_history, load_status_as_of, load_ticket_status_as_of
 from src.external_kaggle import external_schema_exists, load_external_tickets, SOURCE_URL
@@ -476,6 +477,24 @@ with tab_goals:
     st.markdown("#### Plano de ação demonstrativo")
     if "v15_actions" not in st.session_state:
         st.session_state["v15_actions"] = []
+    with st.expander("📥 Restaurar plano de ação exportado (.json)", expanded=False):
+        st.caption("Importe apenas um JSON previamente exportado por esta aba v1.5. "
+                   "A restauração substitui as ações desta sessão, não importa métricas históricas "
+                   "e não grava informações em banco de dados.")
+        restore_file = st.file_uploader(
+            "Selecionar exportação JSON v1.5 (máximo 200 KB)", type=["json"],
+            key="v15_restore_file")
+        if st.button("Restaurar ações nesta sessão", key="v15_restore_button",
+                     disabled=restore_file is None):
+            try:
+                if restore_file.size > 200_000:
+                    raise ValueError("Arquivo acima do máximo de 200 KB")
+                restored = load_plan_actions(restore_file.getvalue())
+                st.session_state["v15_actions"] = restored
+                st.success(f"{len(restored)} ação(ões) restaurada(s) na sessão. "
+                           "Metas recalculadas a partir dos filtros atuais.")
+            except ValueError as exc:
+                st.error(f"Não foi possível restaurar: {exc}")
     # Keep user-entered text if validation fails, so the form can be corrected.
     with st.form("v15_add_action", clear_on_submit=False):
         action_title = st.text_input(
@@ -531,6 +550,33 @@ with tab_goals:
             for a in all_actions
         ])
         st.dataframe(actions_table, hide_index=True, width="stretch")
+        with st.expander("✏️ Corrigir título ou hipótese de uma ação", expanded=False):
+            edit_id = st.selectbox(
+                "Escolha a ação para corrigir", [a["id"] for a in all_actions],
+                key="v15_edit_id")
+            edit_source = next(a for a in all_actions if a["id"] == edit_id)
+            revision_count = len(edit_source.get("edits", []))
+            with st.form("v15_edit_form", clear_on_submit=False):
+                edit_title_value = st.text_input(
+                    "Título corrigido (até 120 caracteres)",
+                    value=edit_source["title"], max_chars=120,
+                    key=f"v15_edit_title_{edit_id}_{revision_count}")
+                edit_hypothesis_value = st.text_area(
+                    "Hipótese corrigida (até 400 caracteres)",
+                    value=edit_source["hypothesis"], max_chars=400,
+                    key=f"v15_edit_hypothesis_{edit_id}_{revision_count}")
+                edit_submitted = st.form_submit_button("Salvar correção da ação")
+            if edit_submitted:
+                try:
+                    st.session_state["v15_actions"] = edit_action(
+                        all_actions, edit_id, title=edit_title_value,
+                        hypothesis=edit_hypothesis_value,
+                        changed_on=datetime.now().date())
+                    st.success("Texto corrigido na sessão. O ID e o histórico de estados foram preservados; "
+                               "a revisão fica registrada na exportação JSON.")
+                    st.rerun()
+                except ValueError as exc:
+                    st.error(f"Correção rejeitada: {exc}")
         open_actions = [a for a in all_actions if GOAL_TRANSITIONS[a["status"]]]
         if open_actions:
             update_left, update_right = st.columns(2)
@@ -571,8 +617,9 @@ with tab_goals:
         st.download_button("⬇ Exportar plano (.md)", export_plan_markdown(goal_payload).encode("utf-8"),
                            "cx_metas_v15_sintetico.md", "text/markdown",
                            key="v15_export_md")
-    st.caption("Exportar NÃO salva no servidor nem reimporta automaticamente. Toda mudança de filtro muda "
-               "a avaliação corrente; ações já criadas preservam o recorte de origem e seu histórico de estados.")
+    st.caption("Exportar NÃO salva no servidor. Um JSON de ações sintéticas v1.5 pode ser "
+               "restaurado manualmente e substitui o plano da sessão. Mudanças de filtro alteram "
+               "a avaliação atual, mas não os recortes originais das ações nem seus eventos.")
 
 with tab_events:
     st.subheader("Histórico imutável de eventos dos tickets")
