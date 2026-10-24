@@ -16,6 +16,8 @@ from src.audit import audit_manifest, export_manifest
 from src.ticket_events import schema_exists, load_event_history, load_status_as_of, load_ticket_status_as_of
 from src.external_kaggle import external_schema_exists, load_external_tickets, SOURCE_URL
 
+PUBLIC_DEMO = os.getenv("CX_PUBLIC_DEMO", "false").lower() in {"true", "1", "yes"}
+
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
 PLOT = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#DCE7F6"), margin=dict(l=15,r=15,t=45,b=20))
@@ -56,6 +58,8 @@ if len(dates)==2:
     subset=subset[subset.date.dt.date.between(start,end)]
 st.sidebar.divider()
 st.sidebar.caption("🔒 KPIs principais: sintéticos; Kaggle em módulo isolado")
+if PUBLIC_DEMO:
+    st.sidebar.info("Demonstração pública: somente dados sintéticos gerados pelo projeto. Sem banco local, CSV Kaggle ou credenciais.")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
 st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.2</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
@@ -226,7 +230,10 @@ with tab_events:
     st.subheader("Histórico imutável de eventos dos tickets")
     st.warning("Transições exibidas são explicitamente simuladas. O campo 'resolved' legado é apenas o estado atual e não reconstitui eventos passados.")
     if os.getenv("CX_DATA_SOURCE", "csv").lower() != "postgres":
-        st.info("Este módulo requer PostgreSQL. Inicie o banco, configure CX_DATA_SOURCE=postgres e consulte docs/TICKET_HISTORY.md.")
+        if PUBLIC_DEMO:
+            st.info("Modo público: o histórico SQL é demonstrado e testado localmente. Esta instância pública não recebe eventos nem se conecta ao PostgreSQL.")
+        else:
+            st.info("Este módulo requer PostgreSQL. Inicie o banco, configure CX_DATA_SOURCE=postgres e consulte docs/TICKET_HISTORY.md.")
     elif not schema_exists():
         st.info("Execute no terminal: python -m src.ticket_events init; depois, opcionalmente, python -m src.ticket_events demo")
     else:
@@ -267,7 +274,10 @@ with tab_kaggle:
     st.markdown(f"Dataset: [Customer Support Ticket Dataset]({SOURCE_URL}). Consulte a licença na página original antes de redistribuir os arquivos.")
     st.warning("O dataset externo contém dados simulados e representa suporte a produtos tecnológicos, não atendimentos bancários. A data de compra não representa a data do ticket.")
     if os.getenv("CX_DATA_SOURCE", "csv").lower() != "postgres":
-        st.info("Ative CX_DATA_SOURCE=postgres e importe o arquivo com python -m src.external_kaggle CAMINHO_DO_CSV --write.")
+        if PUBLIC_DEMO:
+            st.info("Modo público: a fonte Kaggle não está hospedada aqui para evitar redistribuir dados de terceiros. Consulte a documentação e execute o importador localmente.")
+        else:
+            st.info("Ative CX_DATA_SOURCE=postgres e importe o arquivo com python -m src.external_kaggle CAMINHO_DO_CSV --write.")
     elif not external_schema_exists():
         st.info("Nenhum dataset externo importado. Consulte docs/KAGGLE_INTEGRATION.md para executar uma prévia e importar o CSV.")
     else:
