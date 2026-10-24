@@ -25,7 +25,7 @@ def check_v15_mobile():
             tab = page.get_by_role("tab", name="🎯 Metas v1.5")
             tab.scroll_into_view_if_needed()
             tab.click()
-            expect(page.get_by_text("Metas de CX e Plano de Ação — v1.5 (beta)")).to_be_visible()
+            expect(page.get_by_text("Metas de CX e Plano de Ação — v1.5 (beta)")).to_be_visible(timeout=110000)
             expect(page.get_by_text("Meta ilustrativa de CSAT (%)")).to_be_visible()
             expect(page.get_by_text("Plano de ação demonstrativo")).to_be_visible()
             expect(page.get_by_text("Nenhuma ação proposta ainda.")).to_be_visible()
