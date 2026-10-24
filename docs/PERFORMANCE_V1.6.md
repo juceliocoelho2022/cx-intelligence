@@ -23,6 +23,15 @@ O objetivo da v1.6 beta é **reduzir trabalho repetido por clique sem alterar os
 - Navegação Chrome mobile 390 × 844: abas anteriores, metas, ação criada e corrigida, transição `Planejada → Em andamento`, download de JSON/Markdown e reimportação completos.
 - Render publica nova implementação sem erro de inicialização; tempos de rerun públicos são *best effort* e não equivalem a SLA.
 
+## Evidências da primeira implementação (24/10/2026)
+
+- [GitHub Actions #40127773810](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40127773810): quatro jobs verdes para o commit `5446ab1b`, com **186 testes Python** na suíte principal (Python 3.12) e os jobs Python 3.10 e 3.14 também aprovados.
+- Chrome 390 × 844 executou **criar → exportar JSON/Markdown → mudar estado → editar título → reexportar → restaurar arquivo anterior**.
+- A instrumentação `CX_V16_TEST_DIAGNOSTICS=true`, habilitada somente no job Chrome do CI, contou os reruns completos do script; a asserção passou exigindo **zero reruns completos adicionais** durante essas ações. Este é um teste do **isolamento** do fragmento, não uma medição de latência na rede pública.
+- As funções de cache têm testes de **hit/miss, invalidação por dados e filtros, cópias independentes e rejeição de parâmetros mutáveis**. Não há cache global de `v15_actions`.
+- Deploy do Render referente ao commit `6e2f2b15` em **estado Live**, incorporando o fragmento e o diagnóstico oculto na produção.
+- **Limitação:** o Render Free não oferece neste teste um ambiente controlado para afirmar redução fixa de tempo. Tempos podem variar por inicialização a frio, rede, carga e novas sessões.
+
 ## Persistência e autenticação — desenho futuro, NÃO IMPLEMENTADAS
 
 A v1.6 **não cria login, senha, tabelas de planos ou gerenciamento real de tarefas**. Transformar o protótipo público em sistema multiusuário exigirá:
