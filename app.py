@@ -80,7 +80,7 @@ st.sidebar.caption("🔒 KPIs principais: sintéticos; Kaggle em módulo isolado
 if PUBLIC_DEMO:
     st.sidebar.info("Demonstração pública: somente dados sintéticos gerados pelo projeto. Sem banco local, CSV Kaggle ou credenciais.")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
-st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.4.0</div>
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.5.0</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
 if subset.empty:
@@ -412,7 +412,7 @@ with tab_bi:
         st.markdown(bi_md)
 
 with tab_goals:
-    st.subheader("Metas de CX e Plano de Ação — v1.5 (beta)")
+    st.subheader("Metas de CX e Plano de Ação — v1.5.0")
     st.caption("Demonstração com dados 100% sintéticos. Metas configuráveis são propostas ilustrativas; nenhuma ação é executada por uma equipe real.")
     st.info("As ações ficam **somente nesta sessão de navegador**. Não há cadastro, banco de planos, login, agendamento de lembretes ou sincronização entre usuários. Exporte JSON ou Markdown para registrar um exemplo.")
     goal_window_col, goal_count_col = st.columns(2)
@@ -478,11 +478,11 @@ with tab_goals:
     if "v15_actions" not in st.session_state:
         st.session_state["v15_actions"] = []
     with st.expander("📥 Restaurar plano de ação exportado (.json)", expanded=False):
-        st.caption("Importe apenas um JSON previamente exportado por esta aba v1.5. "
+        st.caption("Importe um JSON v1.5 beta ou estável previamente exportado por esta aba. "
                    "A restauração substitui as ações desta sessão, não importa métricas históricas "
                    "e não grava informações em banco de dados.")
         restore_file = st.file_uploader(
-            "Selecionar exportação JSON v1.5 (máximo 200 KB)", type=["json"],
+            "Selecionar exportação JSON v1.5 (beta ou estável; máximo 200 KB)", type=["json"],
             key="v15_restore_file")
         if st.button("Restaurar ações nesta sessão", key="v15_restore_button",
                      disabled=restore_file is None):
