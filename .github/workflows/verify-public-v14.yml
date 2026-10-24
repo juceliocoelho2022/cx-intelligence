@@ -1,0 +1,32 @@
+name: One-time public Render BI downloads validation
+
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/verify-public-v14.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  public-bi-downloads:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      CX_SMOKE_URL: https://cx-intelligence-demo.onrender.com/
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install Chrome automation
+        run: python -m pip install "playwright>=1.56,<2"
+      - name: Verify public dashboard Markdown and HTML download
+        run: python tests/browser/mobile_v14_smoke.py
+      - name: Upload diagnostic screenshot if test fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-bi-download-diagnostics
+          path: artifacts/cx_v14_mobile_failure.png
+          if-no-files-found: warn
