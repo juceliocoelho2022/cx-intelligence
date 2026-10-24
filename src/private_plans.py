@@ -231,3 +231,21 @@ def load_private_plan(principal, plan_id, *, dsn=None):
             actions = load_plan_actions(export_plan_json(blob).encode("utf-8"))
             return {"id": str(row["plan_id"]), "name": row["name"],
                     "revision": row["revision"], "actions": actions}
+
+
+def delete_private_plan(principal, plan_id, expected_revision, *, dsn=None):
+    """Explicit owner-only deletion. Reject stale versions to avoid accidental loss."""
+    _validate_principal(principal)
+    identifier = _id(plan_id)
+    _revision(expected_revision)
+    with connect(_dsn(dsn), connect_timeout=5) as conn:
+        _session(conn, principal)
+        with conn.cursor() as cur:
+            cur.execute("""
+                DELETE FROM cx_private_action_plans
+                 WHERE owner_key=%s AND plan_id=%s AND revision=%s
+                RETURNING plan_id
+            """, (principal.owner_key, identifier, expected_revision))
+            if cur.fetchone() is None:
+                raise PlanConflict("Plano alterado, excluído ou sem autorização")
+    return True
