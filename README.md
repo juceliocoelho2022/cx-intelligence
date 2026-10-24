@@ -5,13 +5,13 @@
 > **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.4--beta-orange)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.4.0--stable-brightgreen)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
 ### 🌐 Acesse o projeto
 
-**[Abrir demonstração online — CX Intelligence v1.3.0](https://cx-intelligence-demo.onrender.com/)** · **[Release estável v1.3.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0)** · **[Guia de execução local completa](docs/KAGGLE_INTEGRATION.md)**
+**[Abrir demonstração online — CX Intelligence v1.4.0](https://cx-intelligence-demo.onrender.com/)** · **[Release oficial v1.4.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.4.0)** · **[Guia de execução local completa](docs/KAGGLE_INTEGRATION.md)**
 
 A versão pública foi verificada em 24/10/2026: o Streamlit iniciou, respondeu `ok` no endpoint de saúde e exibiu o dashboard com **4.000 tickets exclusivamente sintéticos**. O deploy público **não contém o CSV original do Kaggle nem acessa o PostgreSQL local**. Os módulos PostgreSQL e Kaggle estão disponíveis para instalação local, com dados e limitações explicitados na documentação. O serviço gratuito pode demorar a abrir após inatividade.
 
@@ -41,7 +41,8 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Notas da Release oficial v1.3.0](docs/RELEASE_NOTES_V1.3.0.md) | 98 testes na suíte CI, Chrome móvel 390 px, melhorias de CX e checklist de publicação |
 | [Histórico da beta v1.3](docs/RELEASE_NOTES_V1.3.0_BETA.md) | Testes e melhorias que antecederam o preparo da release |
 | [BI e relatórios avançados v1.4](docs/BI_V1.4.md) | Comparação de períodos equivalentes, métricas e exportação executiva Markdown/HTML |
-| [Aceite técnico da v1.4 beta](docs/RELEASE_NOTES_V1.4.0_BETA.md) | 120 testes Python, Chrome mobile 390 px e checklist da beta |
+| [Release oficial v1.4.0](docs/RELEASE_NOTES_V1.4.0.md) | BI avançado, 120 testes e downloads públicos HTML/Markdown verificados |
+| [Histórico da beta v1.4](docs/RELEASE_NOTES_V1.4.0_BETA.md) | Registro dos testes e incidentes corrigidos antes da publicação |
 
 ## Stack
 `Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
@@ -158,7 +159,7 @@ Nova aba **📐 Analytics v1.3** exclusivamente sobre os tickets sintéticos pri
 
 Os resultados **não são FCR, churn nem recontato real de clientes**; o gerador reutiliza IDs por construção. A demo no Render continua com **dados sintéticos, sem PostgreSQL da máquina do usuário e sem CSV Kaggle**. O código da v1.3.0 passou **98 testes da suíte principal no CI (Python 3.12, incluindo PostgreSQL)**, além de smoke test com Chrome no viewport móvel **390 × 844 px**, validando controles e layout. A **[GitHub Release v1.3.0 foi publicada em 24/10/2026](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0)** com a tag apontando para o commit `1586b8e` aprovado no CI. A [v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0) continua disponível no histórico de versões. Consulte [regras e limites](docs/ADVANCED_CX_V1.3.md) e [notas de lançamento v1.3.0](docs/RELEASE_NOTES_V1.3.0.md).
 
-## BI comparativo e relatórios executivos — v1.4 (beta)
+## BI comparativo e relatórios executivos — v1.4.0 (lançamento oficial)
 
 A nova aba **📑 BI v1.4** compara janelas civis consecutivas de **7, 14 ou 30 dias**. O início do período selecionado na barra lateral não modifica a duração do benchmark; o **dia final escolhido** define o fim da janela atual. Filtros por assunto/canal são aplicados igualmente a ambos os períodos, com acesso ao histórico completo para calcular a referência.
 
@@ -168,7 +169,7 @@ A nova aba **📑 BI v1.4** compara janelas civis consecutivas de **7, 14 ou 30 
 - **Relatórios Markdown e HTML autocontido**, sem serviços externos; o HTML pode ser impresso como PDF pelo navegador e escapa valores textuais.
 - Testes determinísticos de datas, filtros, lacunas, resultados e escape de HTML. A suíte principal passou com **120 testes Python**, além de CI aprovado nas versões 3.10/3.12/3.14, integração PostgreSQL e **smoke test real de navegador móvel para a v1.4** (390 × 844 px). Consulte o [CI comprovado](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40109178661) e o [aceite da beta](docs/RELEASE_NOTES_V1.4.0_BETA.md).
 
-**A v1.4 permanece beta. A última tag/Release oficial continua sendo [v1.3.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0).** A demo pública continua com 4.000 tickets sintéticos, sem CSV Kaggle ou acesso ao banco de desenvolvimento. Consulte o [contrato de BI v1.4](docs/BI_V1.4.md).
+**[GitHub Release v1.4.0 publicada em 24/10/2026](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.4.0)**, com tag apontando para o commit `ce9aa484` aprovado nos quatro jobs do CI e em produção no Render. A validação automatizada baixou os arquivos Markdown (**1.902 caracteres**) e HTML (**3.522 caracteres**) diretamente da URL pública ([evidência de CI](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40117915523)). A demo pública utiliza 4.000 tickets sintéticos, sem CSV Kaggle ou banco local. Consulte [contrato BI v1.4](docs/BI_V1.4.md) e [notas de lançamento](docs/RELEASE_NOTES_V1.4.0.md).
 
 ## Demonstração pública segura (Render)
 
