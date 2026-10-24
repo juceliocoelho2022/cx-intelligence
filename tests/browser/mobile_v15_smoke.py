@@ -1,6 +1,7 @@
 """v1.5 Streamlit mobile acceptance: targets, session actions, real exports."""
 import json
 import os
+import re
 from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
@@ -29,6 +30,14 @@ def check_v15_mobile():
             expect(page.get_by_text("Meta ilustrativa de CSAT (%)")).to_be_visible()
             expect(page.get_by_text("Plano de ação demonstrativo")).to_be_visible()
             expect(page.get_by_text("Nenhuma ação proposta ainda.")).to_be_visible()
+            def full_script_runs():
+                # CI-only diagnostic lives outside the goal fragment. Any
+                # full-app rerun increments it; fragment-only actions do not.
+                locator = page.get_by_text(re.compile(r"v1\\.6 full app runs: \\d+"))
+                content = locator.text_content(timeout=30000)
+                assert content is not None
+                return int(re.search(r"\\d+", content.split(":")[-1]).group())
+            script_runs_before_actions = full_script_runs()
             title_box = page.get_by_role(
                 "textbox", name="Ação proposta (obrigatório; até 120 caracteres)")
             hypothesis_box = page.get_by_role(
@@ -124,6 +133,10 @@ def check_v15_mobile():
             assert restored_plan["actions"][0]["id"] == "A0001"
             assert restored_plan["actions"][0]["status"] == "Planejada"
             assert restored_plan["actions"][0]["title"] == "Investigar fricção no atendimento Pix"
+            assert full_script_runs() == script_runs_before_actions, (
+                "Action creation, editing, status changes and restore must rerun "
+                "only the v1.6 goals fragment, not the full analytics dashboard."
+            )
             assert page.locator('[data-testid="stException"]').count() == 0
             assert not errors, "JavaScript page errors: " + str(errors)
             print("PASS: v1.5 mobile 390x844; action creation, state changes, edit revisions, import recovery and real JSON/Markdown downloads.")
