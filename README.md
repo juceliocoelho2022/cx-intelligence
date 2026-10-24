@@ -30,6 +30,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Roteiro de demonstração](docs/PORTFOLIO_DEMO.md) | Pitch, evidências e checklist de aceite da release |
 | [Histórico de eventos v1.1](docs/TICKET_HISTORY.md) | Eventos imutáveis, transições, idempotência e consultas por data |
 | [Kaggle externo v1.2](docs/KAGGLE_INTEGRATION.md) | CSV externo, minimização de dados, validação e análise separada |
+| [Notas de release v1.2](docs/RELEASE_NOTES_V1.2.0.md) | Evidências de CI, KPIs externos e checklist de aceite |
 
 ## Stack
 `Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
@@ -121,6 +122,16 @@ streamlit run app.py
 ```
 
 A aba **Kaggle externo** mostra contagens e taxas usando denominadores explícitos. A data de compra não é usada como data de atendimento, e a ausência de nota CSAT permanece nula. **Verifique a licença do dataset na fonte antes de republicá-lo.** Consulte [regras e limitações](docs/KAGGLE_INTEGRATION.md).
+
+## Verificação de qualidade — candidata v1.2
+
+- **70 testes aprovados localmente** antes da inclusão dos testes com PostgreSQL real.
+- **74 testes aprovados no GitHub Actions** com Python 3.10/3.12/3.14 e serviço PostgreSQL 16 `cx_test` isolado (execução verificada em 24/10/2026).
+- `tests/test_postgres_integration.py` exige explicitamente `TEST_DATABASE_URL` com banco de nome `cx_test`. Sem essa variável, os quatro testes de integração são ignorados **localmente**, preservando o banco `cx_intelligence`.
+- Importação local do Kaggle: **8.469 tickets**, **2.769 avaliados**, **39,3% CSAT positivo entre avaliados**, **32,7% status Closed**; reprocessamento sem alteração do CSV: **0 registros afetados**.
+- A interface Streamlit ainda depende de **verificação visual local** das abas Kaggle externo e Histórico de tickets antes de declarar release final.
+
+GitHub Actions comprovado: [workflow com testes PostgreSQL reais](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40085653843). Veja [notas da candidata v1.2](docs/RELEASE_NOTES_V1.2.0.md).
 
 ## Autor
 [Jucelio Coelho](https://github.com/juceliocoelho2022) · Projeto educacional e técnico. Sem dados de clientes reais. Licença de reutilização ainda não definida.
