@@ -134,5 +134,11 @@ A aba **Kaggle externo** mostra contagens e taxas usando denominadores explícit
 
 GitHub Actions comprovado: [workflow com testes PostgreSQL reais](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40085653843). Veja [notas do aceite v1.2](docs/RELEASE_NOTES_V1.2.0.md).
 
+## Demonstração pública segura (Render)
+
+Serviço gratuito de demonstração criado em 24/10/2026: https://cx-intelligence-demo.onrender.com. O serviço usa `CX_PUBLIC_DEMO=true` e `CX_DATA_SOURCE=csv`, gerando dados **100% sintéticos** no servidor; **não hospeda o CSV Kaggle ou a base local PostgreSQL**.
+
+A URL só deve ser anunciada como disponível quando o deploy no Render estiver em estado `Live` e a interface tiver sido verificada. Consulte [instruções e limitações da demonstração](docs/PUBLIC_DEMO.md). A criação de uma Git tag e GitHub Release v1.2.0 é independente do deploy e ainda não foi confirmada.
+
 ## Autor
 [Jucelio Coelho](https://github.com/juceliocoelho2022) · Projeto educacional e técnico. Sem dados de clientes reais. Licença de reutilização ainda não definida.
