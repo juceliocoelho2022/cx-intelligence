@@ -39,6 +39,17 @@ O controle de comparação foi alternado de **Canal** para **Assunto**, e o grá
 
 **Limite da validação:** o teste ocorreu em viewport desktop; **não houve emulação ou teste direto de interface em celular nessa execução**. Teste manual em smartphone ainda é pendente antes do aceite final da versão 1.3. O slider foi observado, mas não teve seu valor modificado durante esse teste.
 
+## Verificação parcial em Android — capturas recebidas em 24/10/2026
+
+Capturas reais enviadas pelo usuário mostram a aplicação acessível em smartphone Android:
+
+- Cabeçalho legível **`Customer Experience Analytics · v1.3 (beta)`**.
+- Indicadores exibidos: **4.000** tickets sintéticos, **64,9%** CSAT positivo, **87,5%** resolvidos, **11,0 h** de média e **14,7%** no rótulo de reincidência artificial.
+- O aviso de que os KPIs são sintéticos e não equivalem a FCR, NPS ou churn está visível.
+- **Problema observado:** a barra de ferramentas dos gráficos Plotly fica sobreposta a títulos nos prints em celular; correção CSS responsiva foi incluída posteriormente na branch `main`, com cartões de KPI mais compactos.
+- O print **não** mostra a aba **📐 Analytics v1.3** com as três análises novas. Portanto, o aceite visual específico do módulo avançado **continua pendente**.
+- A eficácia da correção de sobreposição **ainda precisa ser verificada no Android após o deploy**. Os testes estáticos de CSS não substituem verificação real.
+
 ## Critérios de aceite e próximos passos
 
 - [x] Módulo analítico `src/advanced_cx.py` criado.
@@ -47,7 +58,10 @@ O controle de comparação foi alternado de **Canal** para **Assunto**, e o grá
 - [x] CI nas três versões de Python e integração PostgreSQL em banco de teste.
 - [x] Demo pública com dados exclusivamente sintéticos e teste de navegação.
 - [x] Trocar Canal → Assunto e confirmar atualização da visualização no desktop.
-- [ ] Conferência visual manual no smartphone e no Windows pelo responsável do projeto.
+- [x] Confirmação visual de abertura da v1.3 no smartphone e leitura dos cartões da visão executiva.
+- [ ] Inspecionar a aba **📐 Analytics v1.3** no smartphone com gráficos, tabelas e controles.
+- [ ] Confirmar no Android a correção de sobreposição de toolbar Plotly e o novo espaçamento dos cartões.
+- [ ] Conferência visual manual da nova aba no Windows pelo responsável do projeto.
 - [ ] Avaliação de métricas temporais específicas com dados externos que realmente contenham eventos de atendimento, com origem e licença adequadas.
 - [ ] Decidir se a beta será promovida para tag/Release `v1.3.0`.
 
