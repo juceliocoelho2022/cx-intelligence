@@ -35,6 +35,17 @@ Para permitir conservar e corrigir esse plano na interface, foram adicionados:
 
 **Limite de aceite:** a restauração do formato de arquivo foi validada em navegador automatizado contra servidor Streamlit local. Não equivale a teste manual de importação e edição no Android do responsável, nem a evidência de backend persistente. A v1.5 segue beta.
 
+## Aceite complementar com plano A0001 e teste remoto (24/10/2026)
+
+O responsável disponibilizou os arquivos `cx_metas_v15_sintetico.json` e `.md` da primeira ação fictícia `A0001`. Os arquivos confirmam status **Planejada**, prazo **07/11/2026**, hipótese sobre a jornada Pix, metas sintéticas de CSAT **70%** versus **62,19%** observado e recorte original que inclui **todos os assuntos**, não apenas Pix. O título repetitivo foi corrigido **em uma cópia de arquivo disponibilizada ao responsável**, preservando ID, prazo, hipótese, escopo, status e eventos; a revisão textual é declarada em `edits`. Essa cópia **não foi inserida no repositório**.
+
+Tentou-se reproduzir o fluxo completo contra a **URL pública do Render**, com um job Chrome 390 × 844 px e ações de sessão isoladas:
+
+- [Execução pública #40124122690](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40124122690): falha de *timeout* na renderização inicial do módulo após selecionar a aba Metas.
+- [Execução pública #40124247815](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40124247815): o roteiro avançou até a etapa de correção do título, porém a confirmação visual não surgiu no limite de 45 segundos em uma atualização do Streamlit; a execução não chegou ao download posterior.
+
+**Interpretação:** essas duas tentativas **não comprovam falha da lógica de restauração ou edição**, mas também **não comprovam aceite de ponta a ponta na instância pública**. A sequência de criar, mudar estado, editar, exportar e restaurar foi integralmente concluída no [CI local Chrome #40123393537](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40123393537) com quatro jobs verdes e 179 testes Python. A performance e os reruns completos no Render Free merecem otimização futura. O workflow público temporário foi retirado após o diagnóstico, e não houve dados reais nem persistência em servidor.
+
 ## Condições de aceite
 - A suíte Python principal deve passar com Python 3.10, 3.12 e 3.14.
 - O teste móvel Chrome 390 × 844 px verifica presença da aba, avaliação de metas, criação de uma ação fictícia, downloads reais JSON/Markdown e transição de estado com evento de auditoria correspondente.
