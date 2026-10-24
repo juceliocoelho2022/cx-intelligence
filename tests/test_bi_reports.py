@@ -20,9 +20,9 @@ def history():
 
 
 def test_equal_non_overlapping_windows_and_unrounded_rate_deltas():
-    r = compare_periods(history(), "2026-08-28", window_days=7, min_sample=2)
-    assert r["period_current"] == {"start": "2026-08-22", "end": "2026-08-28"}
-    assert r["period_previous"] == {"start": "2026-08-15", "end": "2026-08-21"}
+    r = compare_periods(history(), "2026-08-26", window_days=7, min_sample=2)
+    assert r["period_current"] == {"start": "2026-08-20", "end": "2026-08-26"}
+    assert r["period_previous"] == {"start": "2026-08-13", "end": "2026-08-19"}
     assert r["status"] == "comparable"
     assert r["current"]["tickets"] == 3
     assert r["previous"]["tickets"] == 2
@@ -38,7 +38,7 @@ def test_equal_non_overlapping_windows_and_unrounded_rate_deltas():
 
 
 def test_channel_filter_applies_to_both_windows_not_to_coverage():
-    r = compare_periods(history(), "2026-08-28", 7, channels=["Email"], min_sample=1)
+    r = compare_periods(history(), "2026-08-26", 7, channels=["Email"], min_sample=1)
     assert r["previous"]["tickets"] == 0
     assert r["current"]["tickets"] == 1
     assert r["status"] == "empty_baseline"
@@ -47,7 +47,7 @@ def test_channel_filter_applies_to_both_windows_not_to_coverage():
 
 
 def test_topic_filter_preserves_equal_dates():
-    r = compare_periods(history(), "2026-08-28", 7, topics=["Pix"], min_sample=1)
+    r = compare_periods(history(), "2026-08-26", 7, topics=["Pix"], min_sample=1)
     assert r["previous"]["tickets"] == 2
     assert r["current"]["tickets"] == 2
     assert r["status"] == "comparable"
@@ -67,21 +67,21 @@ def test_no_recent_tickets_is_explicitly_unavailable():
     df = history()
     df.loc[2, "topic"] = "Conta"
     df.loc[5, "topic"] = "Pix"
-    r = compare_periods(df, "2026-08-28", 7, topics=["Conta"], min_sample=1)
+    r = compare_periods(df, "2026-08-26", 7, topics=["Conta"], min_sample=1)
     assert r["status"] == "empty_current"
     assert r["current"]["tickets"] == 0
     assert all(m["delta"] is None for m in r["metrics"])
 
 
 def test_segment_requires_minimum_in_both_periods():
-    r = compare_periods(history(), "2026-08-28", 7, min_sample=3)
+    r = compare_periods(history(), "2026-08-26", 7, min_sample=3)
     assert r["segments"] == []
     assert r["segments_excluded_small_sample"] >= 1
     assert "Sem segmentos comparáveis" in render_bi_markdown(r)
 
 
 def test_report_has_transparent_limitations_and_correct_units():
-    r = compare_periods(history(), "2026-08-28", 7, min_sample=1)
+    r = compare_periods(history(), "2026-08-26", 7, min_sample=1)
     md = render_bi_markdown(r)
     html = render_bi_html(r)
     assert "100% sintéticos" in md
@@ -96,7 +96,7 @@ def test_report_has_transparent_limitations_and_correct_units():
 def test_html_escapes_segment_names():
     df = history()
     df["channel"] = 'Chat<script>alert("x")</script>'
-    r = compare_periods(df, "2026-08-28", 7, min_sample=1)
+    r = compare_periods(df, "2026-08-26", 7, min_sample=1)
     html = render_bi_html(r)
     assert "&lt;script&gt;" in html
     assert '<script>alert("x")</script>' not in html
@@ -106,7 +106,7 @@ def test_html_escapes_segment_names():
 def test_markdown_escapes_table_delimiters():
     df = history()
     df["channel"] = "Chat | Unknown"
-    r = compare_periods(df, "2026-08-28", 7, min_sample=1)
+    r = compare_periods(df, "2026-08-26", 7, min_sample=1)
     assert "Chat \\| Unknown" in render_bi_markdown(r)
 
 
@@ -116,19 +116,19 @@ def test_empty_and_invalid_data_rejected():
     df = history()
     df.loc[0, "csat"] = 9
     with pytest.raises(ValueError, match="CSAT"):
-        compare_periods(df, "2026-08-28")
+        compare_periods(df, "2026-08-26")
 
 
 @pytest.mark.parametrize("days", [0, 1, 15, 31, True, 7.0])
 def test_invalid_window(days):
     with pytest.raises(ValueError, match="Janela"):
-        compare_periods(history(), "2026-08-28", window_days=days)
+        compare_periods(history(), "2026-08-26", window_days=days)
 
 
 @pytest.mark.parametrize("dim", ["account", "", None])
 def test_invalid_dimensions(dim):
     with pytest.raises(ValueError, match="Dimensão"):
-        compare_periods(history(), "2026-08-28", 7, dimension=dim)
+        compare_periods(history(), "2026-08-26", 7, dimension=dim)
 
 
 def test_invalid_ends_and_min_sample():
@@ -136,7 +136,7 @@ def test_invalid_ends_and_min_sample():
     with pytest.raises(ValueError, match="Data final"):
         compare_periods(df, "2027-01-01", 7)
     with pytest.raises(ValueError, match="Amostra"):
-        compare_periods(df, "2026-08-28", 7, min_sample=0)
+        compare_periods(df, "2026-08-26", 7, min_sample=0)
 
 
 def test_is_deterministic_and_does_not_mutate_input():
@@ -153,7 +153,7 @@ def test_is_deterministic_and_does_not_mutate_input():
 
 def test_noncovered_baseline_renders_honestly():
     data = history()
-    result = compare_periods(data, "2026-08-28", 30)
+    result = compare_periods(data, "2026-08-26", 30)
     assert result["status"] == "insufficient_history"
     assert "| N/A | N/A |" in render_bi_markdown(result)
     assert "Comparação não calculada" in render_bi_html(result)
