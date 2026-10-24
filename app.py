@@ -18,6 +18,7 @@ from src.performance_v16 import risk_snapshot, nlp_model_comparison, bi_snapshot
 from src.private_plans import (
     private_storage_enabled, principal_from_claims, PrivatePlanError,
     PlanConflict, save_private_plan, load_private_plan, list_private_plans,
+    delete_private_plan,
 )
 from psycopg import Error as PostgresError
 from src.cx_goals import (METRICS as GOAL_METRICS, ROLES as GOAL_ROLES,
@@ -537,6 +538,28 @@ def render_private_plans_panel(principal):
                         st.error(str(exc))
                     except PostgresError:
                         st.error("Não foi possível consultar o armazenamento privado.")
+                confirm_delete = st.checkbox(
+                    "Confirmo a exclusão definitiva deste plano salvo no banco",
+                    key="cx_private_confirm_delete")
+                if st.button("Excluir plano salvo", key="cx_private_delete",
+                             disabled=not confirm_delete):
+                    try:
+                        delete_private_plan(
+                            principal, picked, choices[picked]["revision"])
+                        if st.session_state.get("cx_private_plan_id") == picked:
+                            for key in ("cx_private_plan_id",
+                                        "cx_private_plan_revision",
+                                        "cx_private_plan_name"):
+                                st.session_state.pop(key, None)
+                        st.success("Plano excluído do banco privado. "
+                                   "As ações da sessão ainda podem ser exportadas.")
+                        st.rerun(scope="fragment")
+                    except PlanConflict:
+                        st.warning("Plano alterado ou excluído em outra sessão. Atualize a lista.")
+                    except PrivatePlanError as exc:
+                        st.error(str(exc))
+                    except PostgresError:
+                        st.error("Não foi possível excluir o plano privado.")
         except PrivatePlanError as exc:
             st.error(str(exc))
         except PostgresError:
