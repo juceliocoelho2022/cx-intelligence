@@ -102,8 +102,10 @@ def _short_text(value, label, limit, required=True):
     if not isinstance(value, str):
         raise ValueError(f"{label}: texto inválido")
     value = value.strip()
-    if (required and not value) or len(value) > limit:
-        raise ValueError(f"{label}: informe até {limit} caracteres")
+    if required and not value:
+        raise ValueError(f"{label}: campo obrigatório. Preencha com uma frase que explique o que deseja investigar.")
+    if len(value) > limit:
+        raise ValueError(f"{label}: texto com {len(value)} caracteres; o máximo permitido é {limit}.")
     # Reject control characters; exporting CSV/Markdown and displaying text must stay safe.
     if any(ord(char) < 32 or ord(char) == 127 for char in value):
         raise ValueError(f"{label}: caracteres de controle não permitidos")
