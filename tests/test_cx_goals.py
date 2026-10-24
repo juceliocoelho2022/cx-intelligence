@@ -6,7 +6,8 @@ import pytest
 
 from src.cx_goals import (
     METRICS, DISCLAIMER, evaluate_goals, create_action,
-    change_action_status, report_payload, export_plan_json, export_plan_markdown,
+    change_action_status, edit_action, load_plan_actions,
+    report_payload, export_plan_json, export_plan_markdown,
 )
 
 CURRENT = {
@@ -182,3 +183,114 @@ def test_goals_deterministic_and_input_not_modified():
     targets = {k: v["default"] for k,v in METRICS.items()}
     assert evaluate_goals(CURRENT, targets) == evaluate_goals(CURRENT, targets)
     assert CURRENT == before
+
+
+def test_edit_action_preserves_id_scope_status_events_and_records_revision():
+    original = create_action([], **BASE)
+    started = change_action_status(original, "A0001", "Em andamento", "2026-10-25")
+    edited = edit_action(
+        started, "A0001",
+        title="Investigar insatisfação na jornada Pix",
+        hypothesis="Validar dificuldades de uso e mix de atendimentos fictícios.",
+        changed_on="2026-10-25",
+    )
+    assert original[0]["title"] == BASE["title"]
+    assert started[0]["title"] == BASE["title"]
+    assert edited[0]["title"] == "Investigar insatisfação na jornada Pix"
+    assert edited[0]["status"] == "Em andamento"
+    assert edited[0]["scope"] == started[0]["scope"]
+    assert edited[0]["events"] == started[0]["events"]
+    assert edited[0]["edits"][0]["old_title"] == BASE["title"]
+    assert edited[0]["edits"][0]["new_hypothesis"] == "Validar dificuldades de uso e mix de atendimentos fictícios."
+    assert edit_action(edited, "A0001", title=edited[0]["title"],
+                       hypothesis=edited[0]["hypothesis"], changed_on="2026-10-25") == edited
+
+
+def test_edited_action_can_be_restored_with_audited_revisions():
+    original = create_action([], **BASE)
+    edited = edit_action(
+        original, "A0001", title="Revisar jornada Pix",
+        hypothesis="Checar dados sintéticos por canal.",
+        changed_on="2026-10-24",
+    )
+    updated = change_action_status(edited, "A0001", "Em andamento", "2026-10-24")
+    payload = report_payload(evaluate_goals(CURRENT), updated,
+                             {"start": "2026-10-06", "end": "2026-10-19"})
+    restored = load_plan_actions(export_plan_json(payload).encode("utf-8"))
+    assert restored == updated
+    assert restored is not updated
+    assert restored[0]["status"] == "Em andamento"
+    assert restored[0]["edits"][0]["old_hypothesis"] == BASE["hypothesis"]
+
+
+def test_legacy_v15_export_without_edits_restores_exact_action():
+    action = create_action([], **BASE)
+    payload = report_payload(evaluate_goals(CURRENT), action,
+                             {"start": "2026-10-06", "end": "2026-10-19"})
+    assert load_plan_actions(export_plan_json(payload).encode("utf-8")) == action
+
+
+@pytest.mark.parametrize("modified,expected", [
+    ({"source": "kaggle_external"}, "sintética"),
+    ({"schema_version": "1.4.0"}, "sintética"),
+    ({"persistence": "database"}, "sintética"),
+])
+def test_restore_rejects_non_v15_sources(modified, expected):
+    payload = report_payload([], [], {"start": "2026-10-06", "end": "2026-10-19"})
+    payload.update(modified)
+    with pytest.raises(ValueError, match=expected):
+        load_plan_actions(export_plan_json(payload).encode("utf-8"))
+
+
+@pytest.mark.parametrize("property_name,bad", [
+    ("id", "DROP TABLE x"),
+    ("status", "Concluída"),
+    ("metric", ["csat_pct"]),
+    ("owner_role", {"name": "CX"}),
+    ("title", ""),
+    ("hypothesis", "x" * 401),
+])
+def test_restore_rejects_invalid_or_forged_actions(property_name, bad):
+    payload = report_payload([], create_action([], **BASE),
+                             {"start": "2026-10-06", "end": "2026-10-19"})
+    payload["actions"][0][property_name] = bad
+    with pytest.raises(ValueError):
+        load_plan_actions(export_plan_json(payload).encode("utf-8"))
+
+
+def test_restore_rejects_tampered_events_or_filters():
+    payload = report_payload([], create_action([], **BASE),
+                             {"start": "2026-10-06", "end": "2026-10-19"})
+    payload["actions"][0]["events"].append({"on": "2026-10-25", "status": "Concluída"})
+    with pytest.raises(ValueError, match="Transição"):
+        load_plan_actions(export_plan_json(payload).encode("utf-8"))
+    payload["actions"][0]["events"].pop()
+    payload["actions"][0]["scope"]["channels"] = [["Chat"]]
+    with pytest.raises(ValueError, match="Filtros"):
+        load_plan_actions(export_plan_json(payload).encode("utf-8"))
+
+
+@pytest.mark.parametrize("data", [
+    b"not json",
+    b"",
+    b'{"schema_version": "1.5.0-beta", "schema_version": "1.5.0-beta"}',
+    b'{"schema_version": NaN}',
+    b"x" * 200001,
+])
+def test_restore_rejects_malformed_or_oversized_files(data):
+    with pytest.raises(ValueError):
+        load_plan_actions(data)
+
+
+def test_edit_rejects_invalid_inputs_and_earlier_dates():
+    actions = create_action([], **BASE)
+    with pytest.raises(ValueError, match="Ação não encontrada"):
+        edit_action(actions, "A9999", title="Teste", hypothesis="Hipótese",
+                    changed_on="2026-10-24")
+    with pytest.raises(ValueError, match="campo obrigatório"):
+        edit_action(actions, "A0001", title="", hypothesis="Hipótese",
+                    changed_on="2026-10-24")
+    with pytest.raises(ValueError, match="Data da edição"):
+        edit_action(actions, "A0001", title="Teste", hypothesis="Hipótese",
+                    changed_on="2026-09-01")
+
