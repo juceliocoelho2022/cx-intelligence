@@ -513,6 +513,10 @@ with tab_goals:
     all_actions = st.session_state["v15_actions"]
     if all_actions:
         st.caption(f"{len(all_actions)} ação(ões) fictícia(s) registrada(s) apenas nesta sessão.")
+        st.caption("Estados simulados: "
+                   f"{sum(a['status'] == 'Planejada' for a in all_actions)} planejada(s), "
+                   f"{sum(a['status'] == 'Em andamento' for a in all_actions)} em andamento, "
+                   f"{sum(a['status'] == 'Concluída' for a in all_actions)} concluída(s).")
         actions_table = pd.DataFrame([
             {"ID": a["id"], "Ação": a["title"], "Indicador": GOAL_METRICS[a["metric"]]["label"],
              "Área fictícia": a["owner_role"], "Prazo": a["due_date"], "Estado": a["status"],
