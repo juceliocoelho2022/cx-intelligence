@@ -38,12 +38,12 @@ Para PostgreSQL em outra máquina, a conexão exige sslmode=verify-full e certif
 
 ## Fluxo
 
-Na aba Metas v1.5, uma instalação privada mostra a seção **Meus planos privados**, permitindo login via provedor OIDC, salvar explicitamente, salvar como novo e carregar. Carregar substitui a lista de ações daquela sessão, não os KPIs; exporte JSON antes para conservar versões. A verificação de revisão impede sobrescrever uma alteração feita em outra sessão.
+Na aba Metas v1.5, uma instalação privada mostra a seção **Meus planos privados**, permitindo login via provedor OIDC, salvar explicitamente, salvar como novo, carregar e **excluir** um plano salvo. Carregar substitui a lista de ações daquela sessão, não os KPIs; exporte JSON antes para conservar versões. Excluir exige confirmação específica do plano e revisão atualizada, removendo apenas o registro persistido — ações da sessão podem permanecer até logout/encerramento. A verificação de revisão impede sobrescrever ou excluir inadvertidamente uma versão alterada em outra sessão.
 
 O Streamlit mantém cookies de identidade por até 30 dias; a aplicação compara o campo exp em cada uso privado e pode exigir novo login antecipado. O isolamento usa as claims OIDC verificadas pela biblioteca nativa; o usuário não seleciona um identificador de proprietário.
 
 ## Testes e limites
 
-A suíte tests/test_private_plans.py verifica OIDC inválido/expirado, bloqueio no modo público, payloads inválidos, acesso a contas diferentes via PostgreSQL RLS, papel runtime sem BYPASSRLS e atualização otimista. Os testes de integração usam exclusivamente TEST_DATABASE_URL de ambiente de CI, e não o banco de produção.
+A suíte tests/test_private_plans.py verifica OIDC inválido/expirado, bloqueio no modo público, payloads inválidos, conexão remota com TLS verificado, acesso a contas diferentes via PostgreSQL RLS, papel runtime sem BYPASSRLS, atualização otimista e exclusão com confirmação de revisão. Os testes de integração usam exclusivamente TEST_DATABASE_URL de ambiente de CI, e não o banco de produção.
 
 **A integração OIDC real com provedor externo ainda não foi testada**, pois não há cliente OIDC privado configurado para essa implantação. Essa etapa é necessária antes de considerar o armazenamento autenticado pronto para uso real. Não usar dados pessoais ou bancários reais nesta beta.
