@@ -440,6 +440,11 @@ def private_plan_principal():
             audience=os.getenv("CX_PLAN_OIDC_CLIENT_ID", ""),
         )
     except PrivatePlanError:
+        # Invalidate locally held private data before rendering the goals tab.
+        for key in ("cx_private_active_owner", "v15_actions",
+                    "cx_private_plan_id", "cx_private_plan_revision",
+                    "cx_private_plan_name"):
+            st.session_state.pop(key, None)
         st.error("Identidade OIDC inválida ou expirada; faça login novamente.")
         return None
     previous_owner = st.session_state.get("cx_private_active_owner")
