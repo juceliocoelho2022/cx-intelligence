@@ -32,9 +32,19 @@ O objetivo da v1.6 beta é **reduzir trabalho repetido por clique sem alterar os
 - Deploy do Render referente ao commit `6e2f2b15` em **estado Live**, incorporando o fragmento e o diagnóstico oculto na produção.
 - **Limitação:** o Render Free não oferece neste teste um ambiente controlado para afirmar redução fixa de tempo. Tempos podem variar por inicialização a frio, rede, carga e novas sessões.
 
-## Persistência e autenticação — desenho futuro, NÃO IMPLEMENTADAS
+## Etapa opcional v1.6 — Armazenamento privado
 
-A v1.6 **não cria login, senha, tabelas de planos ou gerenciamento real de tarefas**. Transformar o protótipo público em sistema multiusuário exigirá:
+- Serviço em src/private_plans.py: identidade por iss+sub verificada, expiração OIDC, chave anônima SHA-256, validação de conteúdo sintético e conflito otimista de revisão.
+- Migração migrations/006_private_action_plans.sql: segurança RLS FORCE, owner por transação, runtime SQL sem privilégios de bypass.
+- Interface no fragmento Metas: login, salvar e carregar planos somente quando CX_PRIVATE_PLANS_ENABLED=true e CX_PUBLIC_DEMO não está habilitado.
+- [Guia de instalação privada](PRIVATE_PLANS_V1.6.md). Sem cliente OIDC separado, não há login real na demo pública.
+- O recurso não é preparado para dados de clientes reais, nem para controle de permissões organizacionais.
+
+## Persistência e autenticação — módulo privado opcional (beta)
+
+A v1.6 agora inclui um **módulo opcional de login OIDC e armazenamento privado de planos em PostgreSQL** (ver [instalação privada](PRIVATE_PLANS_V1.6.md)). Ele está **desativado no Render público** e depende da configuração de um cliente OIDC, de um papel SQL sem BYPASSRLS e da migração de tabelas. A integração com um provedor OIDC real ainda não foi validada; por isso permanece **experimental**.
+
+Para transformar o protótipo em sistema corporativo auditável ainda serão necessários:
 
 - Identidade real do usuário via provedor de autenticação/OIDC, sessões seguras, proteção CSRF, limites de requisição e verificação de e-mail conforme contexto;
 - Autorização **por recurso** (`owner_id`, organização, e permissões) no backend, impedindo leitura/escrita de planos de terceiros mesmo com IDs conhecidos;
@@ -42,7 +52,7 @@ A v1.6 **não cria login, senha, tabelas de planos ou gerenciamento real de tare
 - Política de retenção, mínimo de dados, backups, criptografia em trânsito/repouso e LGPD;
 - Separação **total** entre o app público com dados sintéticos e um eventual ambiente autenticado de uso operacional.
 
-Até então, os JSONs exportados são cópias locais do trabalho sintético. Importá-los substitui o plano da sessão, sem persistência em banco. Não usar dados bancários ou clientes reais no site público.
+No Render público, os JSONs continuam sendo cópias locais do trabalho sintético, sem persistência em banco. Em uma instalação privada configurada, o usuário autenticado pode salvar explicitamente somente as ações simuladas no PostgreSQL. Importar um JSON continua sendo uma ação distinta de salvar no banco. Nunca introduza dados bancários ou pessoais reais no ambiente demonstrativo.
 
 ## Executar no Windows
 
