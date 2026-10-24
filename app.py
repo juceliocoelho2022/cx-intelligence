@@ -76,7 +76,7 @@ st.sidebar.caption("🔒 KPIs principais: sintéticos; Kaggle em módulo isolado
 if PUBLIC_DEMO:
     st.sidebar.info("Demonstração pública: somente dados sintéticos gerados pelo projeto. Sem banco local, CSV Kaggle ou credenciais.")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
-st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.4 (beta)</div>
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.4.0</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
 if subset.empty:
@@ -339,7 +339,7 @@ with tab_report:
 
 with tab_bi:
     st.subheader("Business Intelligence — Relatório Executivo Comparativo")
-    st.caption("v1.4 beta · Somente dados sintéticos. Janelas civis consecutivas de igual duração; não são séries ajustadas por sazonalidade.")
+    st.caption("v1.4.0 · Somente dados sintéticos. Janelas civis consecutivas de igual duração; não são séries ajustadas por sazonalidade.")
     left_control, middle_control, right_control = st.columns([1, 1, 1])
     with left_control:
         bi_days = st.selectbox("Comparar os últimos", [7, 14, 30], index=1,
