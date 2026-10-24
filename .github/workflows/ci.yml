@@ -83,11 +83,13 @@ jobs:
           exit 1
       - name: Verify mobile viewport and analytics
         run: python tests/browser/mobile_v13_smoke.py
+      - name: Verify mobile BI reports v1.4
+        run: python tests/browser/mobile_v14_smoke.py
       - name: Upload screenshot on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: cx-v13-mobile-screenshot
+          name: cx-mobile-screenshots
           path: |
             artifacts/
             streamlit-mobile.log
