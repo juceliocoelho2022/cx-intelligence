@@ -483,11 +483,11 @@ def render_private_plans_panel(principal):
         proposed_name = st.text_input(
             "Nome do plano privado (até 80 caracteres)",
             value=st.session_state.get("cx_private_plan_name", "Meu plano de CX"),
-            max_chars=80, key="cx_private_name_field")
+            max_chars=80, key=f"cx_private_name_field_{st.session_state.get('cx_private_plan_id', 'new')}_{st.session_state.get('cx_private_plan_revision', 0)}")
         new_plan = st.checkbox(
             "Salvar como novo plano (em vez de atualizar o atual)",
             value=not bool(st.session_state.get("cx_private_plan_id")),
-            key="cx_private_save_new")
+            key=f"cx_private_save_new_{st.session_state.get('cx_private_plan_id', 'new')}")
         save_submitted = st.form_submit_button("Salvar plano na minha conta")
     if save_submitted:
         try:
@@ -540,7 +540,7 @@ def render_private_plans_panel(principal):
                         st.error("Não foi possível consultar o armazenamento privado.")
                 confirm_delete = st.checkbox(
                     "Confirmo a exclusão definitiva deste plano salvo no banco",
-                    key="cx_private_confirm_delete")
+                    key=f"cx_private_confirm_delete_{picked}")
                 if st.button("Excluir plano salvo", key="cx_private_delete",
                              disabled=not confirm_delete):
                     try:
