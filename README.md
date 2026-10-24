@@ -5,7 +5,7 @@
 > **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.0--rc-orange)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.1--dev-orange)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
@@ -28,6 +28,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Relatório executivo](docs/EXECUTIVE_REPORT.md) | Sumário gerencial, indicadores, descobertas e exportação Markdown |
 | [Rastreabilidade analítica](docs/AUDITABILITY.md) | Verificações de consistência, SHA-256 e manifesto JSON |
 | [Roteiro de demonstração](docs/PORTFOLIO_DEMO.md) | Pitch, evidências e checklist de aceite da release |
+| [Histórico de eventos v1.1](docs/TICKET_HISTORY.md) | Eventos imutáveis, transições, idempotência e consultas por data |
 
 ## Stack
 `Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
@@ -90,6 +91,20 @@ A aba **Relatório executivo** agora também exporta um **manifesto JSON** com h
 A versão candidata inclui teste de integração sintética (pipeline → relatório → manifesto), roteiro de demonstração e pipeline de CI para Python 3.10, 3.12 e 3.14. **A aprovação da release depende de verificar Actions, execução visual e exportações na revisão publicada.** Não há deploy público confirmado.
 
 Veja [roteiro e critérios de aceite](docs/PORTFOLIO_DEMO.md).
+
+## Histórico de tickets — v1.1 (em validação)
+
+O módulo opt-in `src/ticket_events.py` mantém um histórico **append-only** de transições simuladas de tickets, separado do snapshot `cx_tickets`. Ele suporta reabertura explícita, idempotência por chave de evento e consulta do estado em datas anteriores. A tabela histórica só será criada ao executar `init`; eventos de demonstração só serão inseridos ao executar `demo`.
+
+```powershell
+docker compose up -d postgres
+python -m src.ticket_events init
+python -m src.ticket_events demo
+$env:CX_DATA_SOURCE = 'postgres'
+streamlit run app.py
+```
+
+Aba **Histórico de tickets**: linha do tempo dos eventos registrados e fotografia temporal. Os horários da demo foram **inventados**; a tabela atual de tickets não contém informação suficiente para reconstruir mudanças anteriores. O status antigo `resolved` não é sincronizado pela nova tabela. Consulte [documentação detalhada](docs/TICKET_HISTORY.md). Testes de banco/trigger e validação visual em PostgreSQL ainda são pendentes nesta versão de desenvolvimento.
 
 ## Autor
 [Jucelio Coelho](https://github.com/juceliocoelho2022) · Projeto educacional e técnico. Sem dados de clientes reais. Licença de reutilização ainda não definida.
