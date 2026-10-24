@@ -1,8 +1,8 @@
 # CX Intelligence v1.3.0 — Notas de lançamento
 
 **Preparado em:** 24/10/2026
-**Status de publicação:** código da v1.3.0 preparado na branch `main` e testado; **Git tag e GitHub Release v1.3.0 não devem ser anunciadas até sua criação e verificação**.
-**Última Release oficial confirmada durante a preparação:** `v1.2.0`.
+**Status de publicação:** **GitHub Release v1.3.0 publicada e verificada em 24/10/2026**, com tag apontando para `1586b8e29f48625cdf987335fb6679d66f38b85d`. O Render estava `Live` nesse commit e o CI foi aprovado.
+**Release oficial atual:** [v1.3.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0). A versão histórica [v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0) permanece disponível.
 
 ## Novidades — Analytics avançado de CX
 
@@ -41,9 +41,13 @@ A taxa de recontato observada nos tickets fictícios é uma contagem descritiva 
 - [x] CI Python 3.10, 3.12, 3.14 e PostgreSQL;
 - [x] Smoke test real de Chrome com viewport móvel;
 - [x] Deploy Render com dados sintéticos;
-- [ ] Confirmar **CI verde do último commit da preparação da release**;
-- [ ] Criar a tag `v1.3.0` apontando para o commit de preparação aprovado e publicar a GitHub Release;
-- [ ] Conferir o URL da Release depois da publicação;
+- [x] Confirmar CI verde do commit `1586b8e` apontado pela tag: https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40106620236;
+- [x] Tag `v1.3.0` criada e Release publicada em https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0;
+- [x] Conferir o URL da Release depois da publicação;
 - [ ] Opcional: inspeção manual da nova aba Analytics no Android físico para complementar a emulação móvel.
 
 **Documentação de negócio e metodologia:** [ADVANCED_CX_V1.3.md](ADVANCED_CX_V1.3.md). **Histórico da beta:** [RELEASE_NOTES_V1.3.0_BETA.md](RELEASE_NOTES_V1.3.0_BETA.md).
+
+## Nota editorial sobre a descrição da GitHub Release
+
+A descrição digitada durante a publicação da Release reutilizou texto de **pré-lançamento** e ainda contém frases como "não devem ser anunciadas até sua criação". Essas frases **já não refletem o estado do repositório**. O arquivo no branch `main` está corrigido; a descrição da Release já publicada deve ser ajustada em **Edit release**, retirando a orientação anterior. A tag `v1.3.0` permanece fixa no commit original e não incorpora automaticamente atualizações posteriores do README nem destas notas.
