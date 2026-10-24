@@ -147,6 +147,8 @@ def test_json_and_markdown_reports_are_deterministic_and_safe():
     assert payload["disclaimer"] == DISCLAIMER
     md = export_plan_markdown(payload)
     assert "Pix \\| ajustes" in md
+    assert "&lt;img src=x onerror=alert(1)&gt;" in md
+    assert "<img src=x" not in md
     assert "não representam execução real" in md
     assert "apenas na sessão" in md
     assert "CSAT positivo" in md
