@@ -41,7 +41,7 @@ def load_data():
 
 def chart(fig):
     fig.update_layout(**PLOT)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 df=load_data()
 st.sidebar.markdown("### 📊 CX Intelligence")
@@ -97,7 +97,7 @@ with tab_voice:
     sentiment=subset.groupby(["topic","sentiment"],as_index=False).size().rename(columns={"size":"tickets"})
     chart(px.bar(sentiment,x="topic",y="tickets",color="sentiment",barmode="stack",title="Distribuição de sentimentos sintéticos por assunto",color_discrete_map={"positivo":COLORS["green"],"neutro":COLORS["cyan"],"negativo":COLORS["red"]}))
     per_topic=subset.groupby("topic",as_index=False).agg(atendimentos=("ticket_id","size"),csat_positivo_pct=("csat",lambda s:round(100*s.ge(4).mean(),1)),resolvidos_pct=("resolved",lambda s:round(100*s.mean(),1)),tempo_medio_h=("resolution_hours","mean"))
-    st.dataframe(per_topic.round(2),use_container_width=True,hide_index=True)
+    st.dataframe(per_topic.round(2),width="stretch",hide_index=True)
 with tab_risk:
     st.info("Experimento supervisionado: o alvo de reincidência é gerado artificialmente. Não utilizar scores para decisões sobre pessoas reais.")
     with st.spinner("Treinando baseline temporal..."):
@@ -110,7 +110,7 @@ with tab_risk:
     pred_view=pred[pred.topic.isin(topics)&pred.channel.isin(channels)]
     if len(dates)==2:
         pred_view=pred_view[pred_view.date.dt.date.between(start,end)]
-    st.dataframe(pred_view.head(100),use_container_width=True,hide_index=True)
+    st.dataframe(pred_view.head(100),width="stretch",hide_index=True)
 @st.cache_resource
 def load_nlp_model():
     return train_sentiment()
@@ -136,12 +136,12 @@ with tab_nlp:
             st.error(str(exc))
     comparison, mistakes = compare_models()
     st.markdown("#### Comparativo de algoritmos — mesmo conjunto de teste")
-    st.dataframe(comparison.sort_values("f1_macro", ascending=False), use_container_width=True, hide_index=True)
+    st.dataframe(comparison.sort_values("f1_macro", ascending=False), width="stretch", hide_index=True)
     with st.expander("Investigar erros de classificação"):
-        st.dataframe(mistakes, use_container_width=True, hide_index=True)
+        st.dataframe(mistakes, width="stretch", hide_index=True)
     matrix=pd.DataFrame(eval_nlp["confusion"], index=eval_nlp["labels"], columns=eval_nlp["labels"])
     with st.expander("Matriz de confusão (linhas reais × colunas previstas)"):
-        st.dataframe(matrix, use_container_width=True)
+        st.dataframe(matrix, width="stretch")
     st.caption("Os campos sentiment e repeat_contact_30d dos tickets continuam sintéticos; este classificador não os produziu.")
 
 with tab_alerts:
@@ -162,7 +162,7 @@ with tab_alerts:
     if alerts.empty:
         st.info("Nenhum pico elegível detectado para o recorte. Isto não comprova ausência de problemas ou cobertura de dados completa.")
     else:
-        st.dataframe(alerts, use_container_width=True, hide_index=True)
+        st.dataframe(alerts, width="stretch", hide_index=True)
         st.download_button("⬇ Exportar alertas (CSV)", alerts.to_csv(index=False).encode("utf-8"),
                            "cx_alertas_sinteticos.csv", "text/csv")
     weeks = weekly_volumes(history)
@@ -194,7 +194,7 @@ with tab_insights:
         fig_insights.add_vline(x=0,line_dash="dot",line_color="#8795A8")
         fig_insights.add_hline(y=0,line_dash="dot",line_color="#8795A8")
         chart(fig_insights)
-        st.dataframe(insights, use_container_width=True, hide_index=True)
+        st.dataframe(insights, width="stretch", hide_index=True)
         st.download_button("⬇ Exportar diagnóstico CSV", insights.to_csv(index=False).encode("utf-8"),
                            "cx_diagnostico_sintetico.csv","text/csv")
         st.info("Recomendação: discutir segmentos sinalizados com CX, revisar mudanças de processo e analisar séries históricas antes de qualquer intervenção.")
@@ -253,7 +253,7 @@ with tab_events:
             ticket_choice = st.selectbox("Linha do tempo — ticket fictício",
                                          sorted(events_df.ticket_id.unique()), key="history_ticket")
             selected_events = events_df[events_df.ticket_id.eq(ticket_choice)].sort_values("occurred_at")
-            st.dataframe(selected_events, use_container_width=True, hide_index=True)
+            st.dataframe(selected_events, width="stretch", hide_index=True)
             st.caption("A lista detalhada limita-se aos 500 eventos mais recentes. Para uma trilha completa, consulte a tabela SQL por ticket.")
             st.download_button("⬇ Exportar eventos exibidos (CSV)",
                 events_df.to_csv(index=False).encode("utf-8"), "cx_eventos_sinteticos.csv","text/csv")
@@ -291,7 +291,7 @@ with tab_kaggle:
                              title="Distribuição por canal",color_discrete_sequence=[COLORS["cyan"]]))
             st.markdown("#### Status e prioridade")
             priority_ext=pd.crosstab(external.ticket_priority,external.ticket_status).reset_index()
-            st.dataframe(priority_ext,use_container_width=True,hide_index=True)
+            st.dataframe(priority_ext,width="stretch",hide_index=True)
             st.caption("Não há duração confiável, histórico de eventos, reincidência, churn ou sentimento NLP disponível neste importador.")
             st.download_button("⬇ Exportar agregados por tipo (CSV)",
                                counts.to_csv(index=False).encode("utf-8"),
@@ -306,5 +306,5 @@ with tab_quality:
         st.error("; ".join(errors))
     else:
         st.success("Validações implementadas aprovadas. Isto não substitui testes completos de contrato e integridade.")
-    st.dataframe(pd.DataFrame({"coluna":df.columns,"tipo":df.dtypes.astype(str).values,"nulos":df.isna().sum().values}),use_container_width=True,hide_index=True)
+    st.dataframe(pd.DataFrame({"coluna":df.columns,"tipo":df.dtypes.astype(str).values,"nulos":df.isna().sum().values}),width="stretch",hide_index=True)
     st.download_button("⬇ Exportar registros filtrados (CSV)",subset.to_csv(index=False).encode("utf-8"),"cx_filtrado.csv","text/csv")
