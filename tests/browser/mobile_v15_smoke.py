@@ -29,9 +29,9 @@ def check_v15_mobile():
             expect(page.get_by_text("Meta ilustrativa de CSAT (%)")).to_be_visible()
             expect(page.get_by_text("Plano de ação demonstrativo")).to_be_visible()
             expect(page.get_by_text("Nenhuma ação proposta ainda.")).to_be_visible()
-            page.get_by_role("textbox", name="Ação proposta (até 120 caracteres)").fill(
+            page.get_by_role("textbox", name="Ação proposta (obrigatório; até 120 caracteres)").fill(
                 "Investigar fricção no atendimento Pix")
-            page.get_by_role("textbox", name="Hipótese a investigar (até 400 caracteres)").fill(
+            page.get_by_role("textbox", name="Hipótese a investigar (obrigatório; até 400 caracteres)").fill(
                 "Conferir jornadas e dúvidas recorrentes do processo ilustrativo.")
             page.get_by_role("button", name="Adicionar ação ilustrativa").click()
             expect(page.get_by_text("1 ação(ões) fictícia(s) registrada(s) apenas nesta sessão.")).to_be_visible(timeout=45000)
