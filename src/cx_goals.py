@@ -1,4 +1,4 @@
-"""CX Intelligence v1.5 beta — synthetic-only CX goals and action tracking.
+"""CX Intelligence v1.5.0 — synthetic-only CX goals and action tracking.
 
 Pure business logic. No database writes, automation, real client data, or
 unverified impact attribution. Streamlit manages volatile per-session state.
@@ -200,7 +200,7 @@ def edit_action(actions, action_id, *, title, hypothesis, changed_on):
 
 
 def load_plan_actions(blob, max_bytes=200_000, max_actions=100):
-    """Recover actions from v1.5 synthetic-only exports; discard stale goal scores.
+    """Recover v1.5 stable and beta synthetic-only exports; discard stale goal scores.
 
     Strictly validates every imported action and event. Never imports or executes
     arbitrary tasks, overwrites a database, or claims effects on actual KPIs.
@@ -221,7 +221,7 @@ def load_plan_actions(blob, max_bytes=200_000, max_actions=100):
         )
     except (UnicodeError, json.JSONDecodeError) as exc:
         raise ValueError("Arquivo não é um JSON UTF-8 válido") from exc
-    if not isinstance(payload, dict) or payload.get("schema_version") != "1.5.0-beta" or (
+    if not isinstance(payload, dict) or payload.get("schema_version") not in ("1.5.0", "1.5.0-beta") or (
         payload.get("source") != "synthetic_primary_only" or
         payload.get("persistence") != "session_only"
     ):
@@ -316,7 +316,7 @@ def report_payload(goals, actions, period):
     if start > end:
         raise ValueError("Período inválido")
     return {
-        "schema_version": "1.5.0-beta", "source": "synthetic_primary_only",
+        "schema_version": "1.5.0", "source": "synthetic_primary_only",
         "disclaimer": DISCLAIMER, "period": {"start": start, "end": end},
         "goals": goals, "actions": actions, "persistence": "session_only",
     }
