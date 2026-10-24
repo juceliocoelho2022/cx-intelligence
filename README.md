@@ -9,7 +9,7 @@
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
-Plataforma demonstrativa de Customer Experience Analytics aplicada ao setor financeiro, desenvolvida como **projeto independente de portfólio**. São utilizados apenas dados inteiramente sintéticos; não há vínculo oficial com o Banco Inter.
+Plataforma demonstrativa de Customer Experience Analytics aplicada ao setor financeiro, desenvolvida como **projeto independente de portfólio**. O dataset principal utiliza dados inteiramente sintéticos; a integração opcional Kaggle preserva fonte externa isolada e importa somente metadados operacionais. Não há vínculo oficial com o Banco Inter.
 
 ## Visão executiva
 Uma instituição financeira fictícia precisa medir satisfação e resolução, investigar motivos e canais de atendimento e estimar propensão simulada à reincidência. O MVP fornece exploração com Streamlit e Plotly, preparação/qualidade em Python + pandas, consultas analíticas SQL para PostgreSQL e baseline de classificação com scikit-learn.
