@@ -5,7 +5,7 @@
 > **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.3.0--stable-brightgreen)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.4--beta-orange)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
@@ -40,6 +40,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Analytics avançado v1.3](docs/ADVANCED_CX_V1.3.md) | Série semanal, faixas Wilson, benchmark e recontato com censura temporal |
 | [Notas da Release oficial v1.3.0](docs/RELEASE_NOTES_V1.3.0.md) | 98 testes na suíte CI, Chrome móvel 390 px, melhorias de CX e checklist de publicação |
 | [Histórico da beta v1.3](docs/RELEASE_NOTES_V1.3.0_BETA.md) | Testes e melhorias que antecederam o preparo da release |
+| [BI e relatórios avançados v1.4](docs/BI_V1.4.md) | Comparação de períodos equivalentes, métricas e exportação executiva Markdown/HTML |
 
 ## Stack
 `Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
@@ -155,6 +156,18 @@ Nova aba **📐 Analytics v1.3** exclusivamente sobre os tickets sintéticos pri
 - **Exportações CSV e testes unitários** para indicadores, prazos de 30/31 dias, censura, amostras mínimas e regras de domínio.
 
 Os resultados **não são FCR, churn nem recontato real de clientes**; o gerador reutiliza IDs por construção. A demo no Render continua com **dados sintéticos, sem PostgreSQL da máquina do usuário e sem CSV Kaggle**. O código da v1.3.0 passou **98 testes da suíte principal no CI (Python 3.12, incluindo PostgreSQL)**, além de smoke test com Chrome no viewport móvel **390 × 844 px**, validando controles e layout. A **[GitHub Release v1.3.0 foi publicada em 24/10/2026](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0)** com a tag apontando para o commit `1586b8e` aprovado no CI. A [v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0) continua disponível no histórico de versões. Consulte [regras e limites](docs/ADVANCED_CX_V1.3.md) e [notas de lançamento v1.3.0](docs/RELEASE_NOTES_V1.3.0.md).
+
+## BI comparativo e relatórios executivos — v1.4 (beta)
+
+A nova aba **📑 BI v1.4** compara janelas civis consecutivas de **7, 14 ou 30 dias**. O início do período selecionado na barra lateral não modifica a duração do benchmark; o **dia final escolhido** define o fim da janela atual. Filtros por assunto/canal são aplicados igualmente a ambos os períodos, com acesso ao histórico completo para calcular a referência.
+
+- Comparação de **atendimentos (% relativa ao período anterior), CSAT e resolução (pp) e tempo médio de atendimento (horas)**.
+- Tratamento transparente de períodos sem histórico suficiente, sem dados de base ou sem tickets atuais. Nunca são produzidas variações com denominador zero.
+- Benchmark por canal/assunto somente quando **ambos** os períodos atingem o tamanho mínimo de amostra configurado.
+- **Relatórios Markdown e HTML autocontido**, sem serviços externos; o HTML pode ser impresso como PDF pelo navegador e escapa valores textuais.
+- Testes determinísticos de datas, filtros, lacunas, resultados e escape de HTML. O primeiro CI completo da implementação passou com **120 testes Python** mais o teste de navegador móvel v1.3.
+
+**A v1.4 permanece beta. A última tag/Release oficial continua sendo [v1.3.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0).** A demo pública continua com 4.000 tickets sintéticos, sem CSV Kaggle ou acesso ao banco de desenvolvimento. Consulte o [contrato de BI v1.4](docs/BI_V1.4.md).
 
 ## Demonstração pública segura (Render)
 
