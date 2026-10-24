@@ -109,9 +109,10 @@ def check_v15_mobile():
                 "Investigar fricção no atendimento Pix")
             # Import an earlier export to demonstrate session-only recovery.
             page.get_by_text("📥 Restaurar plano de ação exportado (.json)", exact=True).click()
-            page.get_by_label(
-                "Selecionar exportação JSON v1.5 (máximo 200 KB)"
-            ).set_input_files(str(json_path))
+            # Streamlit assigns the aria label to a dropzone section, not to
+            # its actual HTML file input; Playwright needs input[type=file].
+            page.locator('[data-testid="stFileUploader"] input[type="file"]').set_input_files(
+                str(json_path))
             page.get_by_role("button", name="Restaurar ações nesta sessão").click()
             expect(page.get_by_text("1 ação(ões) restaurada(s) na sessão.", exact=False)).to_be_visible(timeout=45000)
             with page.expect_download(timeout=45000) as restored_event:
