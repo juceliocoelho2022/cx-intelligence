@@ -65,3 +65,34 @@ def test_unknown_ticket_fails_before_insert(monkeypatch):
     with pytest.raises(ValueError,match="inexistente"):
         events.append_ticket_event("T999999","evt-1","OPEN",TIME)
     assert not any("INSERT" in sql for sql,_ in cur.statements)
+
+
+def test_demo_rerun_does_not_seed_additional_tickets(monkeypatch):
+    from datetime import date
+    from types import SimpleNamespace
+
+    history = {"already_present": False}
+    class DemoConn:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def execute(self, sql, params=None):
+            row = {"ticket_id": "T000001", "date": date(2026,8,1),
+                   "resolved": 1, "has_history": history["already_present"]}
+            return SimpleNamespace(fetchall=lambda: [row])
+
+    calls = []
+    monkeypatch.setattr(events.psycopg, "connect", lambda *a, **kw: DemoConn())
+    monkeypatch.setattr(events, "initialize_event_schema", lambda dsn: None)
+    def fake_append(*args, **kwargs):
+        calls.append(args)
+        return {"outcome": "inserted"}
+    monkeypatch.setattr(events, "append_ticket_event", fake_append)
+
+    first = events.seed_demo(dsn="synthetic-test-dsn",limit=1)
+    history["already_present"] = True
+    second = events.seed_demo(dsn="synthetic-test-dsn",limit=1)
+    assert first == {"tickets_seeded": 1, "events_inserted": 3}
+    assert second == {"tickets_seeded": 0, "events_inserted": 0}
+    assert len(calls) == 3
