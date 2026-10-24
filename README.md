@@ -41,6 +41,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Notas da Release oficial v1.3.0](docs/RELEASE_NOTES_V1.3.0.md) | 98 testes na suíte CI, Chrome móvel 390 px, melhorias de CX e checklist de publicação |
 | [Histórico da beta v1.3](docs/RELEASE_NOTES_V1.3.0_BETA.md) | Testes e melhorias que antecederam o preparo da release |
 | [BI e relatórios avançados v1.4](docs/BI_V1.4.md) | Comparação de períodos equivalentes, métricas e exportação executiva Markdown/HTML |
+| [Metas de CX e planos de ação v1.5 beta](docs/GOALS_V1.5.md) | Metas configuráveis, monitoramento descritivo, ações fictícias por sessão e exportação JSON/Markdown |
 | [Release oficial v1.4.0](docs/RELEASE_NOTES_V1.4.0.md) | BI avançado, 120 testes e downloads públicos HTML/Markdown verificados |
 | [Histórico da beta v1.4](docs/RELEASE_NOTES_V1.4.0_BETA.md) | Registro dos testes e incidentes corrigidos antes da publicação |
 
@@ -158,6 +159,17 @@ Nova aba **📐 Analytics v1.3** exclusivamente sobre os tickets sintéticos pri
 - **Exportações CSV e testes unitários** para indicadores, prazos de 30/31 dias, censura, amostras mínimas e regras de domínio.
 
 Os resultados **não são FCR, churn nem recontato real de clientes**; o gerador reutiliza IDs por construção. A demo no Render continua com **dados sintéticos, sem PostgreSQL da máquina do usuário e sem CSV Kaggle**. O código da v1.3.0 passou **98 testes da suíte principal no CI (Python 3.12, incluindo PostgreSQL)**, além de smoke test com Chrome no viewport móvel **390 × 844 px**, validando controles e layout. A **[GitHub Release v1.3.0 foi publicada em 24/10/2026](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0)** com a tag apontando para o commit `1586b8e` aprovado no CI. A [v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0) continua disponível no histórico de versões. Consulte [regras e limites](docs/ADVANCED_CX_V1.3.md) e [notas de lançamento v1.3.0](docs/RELEASE_NOTES_V1.3.0.md).
+
+## Em desenvolvimento — v1.5 beta: Metas e Planos de Ação
+
+A nova aba **🎯 Metas v1.5** demonstra um ciclo de acompanhamento CX a partir dos **tickets 100% sintéticos do conjunto principal**, sem dados de clientes reais e sem misturar o CSV Kaggle.
+
+- Metas hipotéticas configuráveis para CSAT positivo, percentual de resolvidos e tempo médio em horas. As lacunas respeitam **pontos percentuais (pp)** e **horas**, e não inventam conclusões sem amostra suficiente ou janela de observação completa.
+- **Planos de ação fictícios** vinculados a um indicador, uma hipótese, uma área responsável simulada, um recorte temporal e um prazo proposto, com fluxo `Planejada → Em andamento → Concluída`.
+- As ações existem **somente na sessão aberta do Streamlit**. Não há persistência em banco, tarefas reais, envio de e-mails, aprovação de líderes nem alteração de indicadores causada por uma ação.
+- Download de **JSON determinístico** e **Markdown** com histórico e avisos de limitações.
+
+**v1.5 é uma beta, não uma Release oficial.** A versão estável permanece a [v1.4.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.4.0). Regras e testes em [Metas v1.5](docs/GOALS_V1.5.md).
 
 ## BI comparativo e relatórios executivos — v1.4.0 (lançamento oficial)
 
