@@ -13,7 +13,7 @@ from src.anomalies import detect_volume_anomalies, weekly_volumes
 from src.insights import segment_insights
 from src.reports import build_report, render_markdown
 from src.audit import audit_manifest, export_manifest
-from src.ticket_events import schema_exists, load_event_history, load_status_as_of
+from src.ticket_events import schema_exists, load_event_history, load_status_as_of, load_ticket_status_as_of
 from src.external_kaggle import external_schema_exists, load_external_tickets, SOURCE_URL
 
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
@@ -252,6 +252,9 @@ with tab_events:
                 st.info("Nenhum evento registrado até a data informada.")
             ticket_choice = st.selectbox("Linha do tempo — ticket fictício",
                                          sorted(events_df.ticket_id.unique()), key="history_ticket")
+            ticket_status = load_ticket_status_as_of(ticket_choice, state_at)
+            st.caption("Status até a data selecionada (UTC): " +
+                       (ticket_status["status"] if ticket_status is not None else "sem evento registrado"))
             selected_events = events_df[events_df.ticket_id.eq(ticket_choice)].sort_values("occurred_at")
             st.dataframe(selected_events, width="stretch", hide_index=True)
             st.caption("A lista detalhada limita-se aos 500 eventos mais recentes. Para uma trilha completa, consulte a tabela SQL por ticket.")
