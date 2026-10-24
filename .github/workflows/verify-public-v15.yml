@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - .github/workflows/verify-public-v15.yml
+      - tests/browser/mobile_v15_smoke.py
 permissions:
   contents: read
 jobs:
