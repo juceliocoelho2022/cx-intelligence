@@ -25,7 +25,9 @@ Captura de tela fornecida pelo responsável em 24/10/2026 mostra, lado a lado, o
 
 Valores da tela: **685 vs. 737** atendimentos (**−7,06%**), CSAT **62,19% vs. 62,01%** (**+0,18 pp**), resolução **87,45% vs. 87,38%** (**+0,07 pp**) e duração **10,89 h vs. 11,17 h** (**−0,28 h**).
 
-**Escopo da evidência:** o HTML foi baixado e aberto no **Windows com Streamlit local**; não é uma comprovação de download via Render público, nem de download manual do Markdown. O CI validou os arquivos Markdown **e** HTML de ponta a ponta em Chrome headless de largura móvel. A inspeção do site público realizada por navegador externo conseguiu navegar pela aba mas reportou mensagens de falha ao carregar módulo JS/CSS no fluxo de download; a causa desse problema pontual ainda não foi reproduzida no CI. É recomendado reproduzir o download no navegador público do usuário antes do aceite final.
+**Evidência complementar — Markdown (24/10/2026):** segunda captura do responsável mostra o arquivo `cx_bi_v14_sintetico (1).md` aberto no VS Code, lado a lado com o mesmo relatório `cx_bi_v14_sintetico.html` aberto no navegador. São visíveis a tabela dos quatro indicadores, os achados descritivos, segmentos comparáveis, ações sugeridas e limitações. Portanto **ambos os formatos foram exportados e abertos com sucesso no Windows**.
+
+**Escopo da evidência:** os arquivos abertos estão na pasta local `Downloads` e a origem dos downloads **não é identificável nessa captura**; a evidência demonstra leitura e integridade visual local, mas não prova o funcionamento das duas exportações **diretamente via Render público**. O CI já havia validado downloads de Markdown e HTML de ponta a ponta em Chrome headless de largura móvel. A inspeção externa do site público reportou anteriormente erros de importação JS/CSS no fluxo de download; a causa pontual não se reproduziu no CI. Recomenda-se confirmar os dois downloads no site público antes de promover a beta.
 
 ## Critérios e pendências
 - [x] Contrato analítico e modelo de comparação.
@@ -35,7 +37,8 @@ Valores da tela: **685 vs. 737** atendimentos (**−7,06%**), CSAT **62,19% vs. 
 - [x] Confirmar último deploy Render como **Live** e a aba v1.4 visível no navegador público (desktop).
 - [x] Validar downloads reais Markdown/HTML no navegador Chrome automatizado em CI, incluindo conteúdo dos arquivos.
 - [x] Validar download, abertura e renderização do relatório HTML no navegador local Windows.
-- [ ] Verificar manualmente o download Markdown e o download via **Render público**, devido ao erro intermitente na inspeção externa.
+- [x] Validar abertura e conteúdo do Markdown exportado no VS Code local, além do HTML já verificado no Windows.
+- [ ] Verificar manualmente os downloads **via Render público**, devido ao erro intermitente na inspeção externa.
 - [ ] Inspecionar a aba BI v1.4 no Android físico, caso desejado para a Release final.
 - [ ] Promover para Git tag e GitHub Release v1.4.0 após aceite.
 
