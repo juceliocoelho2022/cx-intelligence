@@ -1,4 +1,4 @@
-"""CX Intelligence — dashboard executivo v1.2 (dados integralmente sintéticos)."""
+"""CX Intelligence — dados principais sintéticos e fonte externa isolada."""
 import os
 from datetime import datetime, time, timezone
 import pandas as pd
@@ -55,7 +55,7 @@ if len(dates)==2:
     start,end=dates
     subset=subset[subset.date.dt.date.between(start,end)]
 st.sidebar.divider()
-st.sidebar.caption("🔒 Dataset sintético · Sem dados pessoais reais")
+st.sidebar.caption("🔒 KPIs principais: sintéticos; Kaggle em módulo isolado")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
 st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.2</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
@@ -72,7 +72,7 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     ("Tempo médio",f"{m['avg_resolution_hours']:.1f} h","Horas por chamado, não minutos"),
     ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
     slot.metric(name,value,help=tip)
-st.markdown('<div class="note">🔎 Todos os números são sintéticos. * Reincidência e sentimento são rótulos simulados. A taxa de resolução não mede FCR e o projeto não mede NPS nem churn real.</div>',unsafe_allow_html=True)
+st.markdown('<div class="note">🔎 Os KPIs acima são exclusivamente do dataset sintético principal, não do Kaggle. * Reincidência e sentimento são rótulos simulados. Resolução não mede FCR; não calculamos NPS nem churn real.</div>',unsafe_allow_html=True)
 tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_report,tab_events,tab_kaggle,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📋 Relatório executivo","🕒 Histórico de tickets","🌐 Kaggle externo","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
