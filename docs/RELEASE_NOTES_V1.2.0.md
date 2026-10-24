@@ -1,7 +1,7 @@
-# CX Intelligence — Release Candidate v1.2.0
+# CX Intelligence — v1.2.0 | Aceite técnico e visual
 
 **Data de preparação:** 24/10/2026
-**Status:** candidata em validação visual; nenhum Git tag ou GitHub Release é afirmado neste documento.
+**Status:** aceite técnico e visual local concluído em 24/10/2026; não há confirmação de Git tag, GitHub Release ou deploy público.
 **Natureza:** projeto técnico independente de portfólio. Indicadores principais sintéticos; CSV Kaggle importado como fonte demonstrativa isolada.
 
 ## Incrementos desde v1.0
@@ -59,7 +59,18 @@ O usuário confirmou via PowerShell e `psql` no PostgreSQL da aplicação:
 
 Distribuição demonstrativa registrada: T000001 (OPEN → IN_PROGRESS → RESOLVED), T000002 (OPEN → IN_PROGRESS), T000003 (OPEN → IN_PROGRESS → RESOLVED), T000004 (OPEN → IN_PROGRESS) e T000005 (OPEN → IN_PROGRESS). **Os horários são fictícios**, não evidência de estados operacionais observados.
 
-Esta evidência confirma a persistência e a idempotência do cenário de demonstração no banco local. A proteção contra UPDATE/DELETE, a chave estrangeira e a consulta histórica também passaram na suíte com PostgreSQL real no GitHub Actions. Continua pendente a validação visual das abas no navegador.
+Esta evidência confirma a persistência e a idempotência do cenário de demonstração no banco local. A proteção contra UPDATE/DELETE, a chave estrangeira e a consulta histórica também passaram na suíte com PostgreSQL real no GitHub Actions. A visualização dos 12 eventos e do gráfico de status foi confirmada por captura de tela do dashboard.
+
+## Aceite visual — comprovado em capturas de tela (24/10/2026)
+
+O usuário apresentou o dashboard Streamlit em execução na porta local 8502, com fonte PostgreSQL. As telas mostraram:
+
+- Aba **Histórico de tickets** com **12 eventos** e gráfico de estados históricos renderizado. Não foi evidenciada seleção individual de T000001 com data específica para checagem do texto de seu status.
+- Aba **Kaggle externo** com os quatro indicadores: **8.469 tickets**, **2.769 avaliações**, **39,3% CSAT positivo somente entre avaliados** e **32,7% com status Closed**.
+- Gráficos de volume por **tipo** e por **canal** renderizados, além da tabela de cruzamento de **prioridade × status**.
+- Evidência de interface legível e de consulta do banco. Não são testes de usabilidade, responsividade de múltiplas resoluções ou segurança de produção.
+
+Execução recente do GitHub Actions após as alterações de documentação, commit `16b6413`: [workflow bem-sucedido](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40089773056).
 
 ## Escopo e limitações
 
@@ -77,10 +88,11 @@ Esta evidência confirma a persistência e a idempotência do cenário de demons
 - [x] Importar CSV no PostgreSQL local e reprocessar idempotentemente.
 - [x] Executar a suíte local de 70 testes antes da ampliação de cobertura.
 - [x] Rodar testes de integração PostgreSQL no CI nas três versões de Python (execução acima).
-- [ ] Confirmar no navegador a nova aba **Kaggle externo**, métricas e visualizações.
+- [x] Confirmar no navegador a nova aba **Kaggle externo**, métricas e visualizações.
 - [x] Executar localmente `python -m src.ticket_events init`, `demo` e `demo` novamente; confirmar 12 eventos preexistentes nos cinco tickets e idempotência da demo.
-- [ ] Conferir visualmente a aba **Histórico de tickets**.
-- [ ] Revalidar último commit da branch principal após ajustes de CI e documentação.
+- [x] Conferir visualmente a aba **Histórico de tickets**, total de eventos e gráfico.
+- [x] Revalidar commit da branch principal após ajustes de CI e documentação (workflow do commit `16b6413` aprovado).
+- [ ] Verificar CI do eventual commit final de documentação, se produzido.
 - [ ] Se desejado, criar a tag e a GitHub Release pelo próprio GitHub após o aceite.
 
-Este documento não afirma a conclusão de etapas ainda pendentes.
+O aceite técnico e visual local está concluído. A publicação de uma GitHub Release/tag e um deploy público são decisões separadas, ainda não confirmadas.
