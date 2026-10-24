@@ -1,6 +1,6 @@
 """CX Intelligence — dados principais sintéticos e fonte externa isolada."""
 import os
-from datetime import datetime, time, timezone
+from datetime import datetime, time, timezone, timedelta
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -493,7 +493,7 @@ with tab_goals:
                                        key="v15_action_role")
         with action_right:
             action_deadline = st.date_input("Prazo proposto",
-                                            value=datetime.now().date() + pd.Timedelta(days=14),
+                                            value=datetime.now().date() + timedelta(days=14),
                                             min_value=datetime.now().date(),
                                             key="v15_action_due")
         action_submitted = st.form_submit_button("Adicionar ação ilustrativa", type="primary")
@@ -512,6 +512,7 @@ with tab_goals:
             st.error(f"Não foi possível adicionar: {exc}")
     all_actions = st.session_state["v15_actions"]
     if all_actions:
+        st.caption(f"{len(all_actions)} ação(ões) fictícia(s) registrada(s) apenas nesta sessão.")
         actions_table = pd.DataFrame([
             {"ID": a["id"], "Ação": a["title"], "Indicador": GOAL_METRICS[a["metric"]]["label"],
              "Área fictícia": a["owner_role"], "Prazo": a["due_date"], "Estado": a["status"],
@@ -544,7 +545,7 @@ with tab_goals:
                     st.error(str(exc))
         with st.expander("Hipóteses e histórico das ações"):
             for action_item in all_actions:
-                st.markdown(f'**{action_item["id"]} — {action_item["title"]}**')
+                st.write(f'{action_item["id"]} — {action_item["title"]}')
                 st.write(action_item["hypothesis"])
                 st.json(action_item["events"])
     else:
