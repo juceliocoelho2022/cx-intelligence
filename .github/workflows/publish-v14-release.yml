@@ -1,0 +1,41 @@
+name: One-time publish CX Intelligence v1.4.0
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/publish-v14-release.yml
+permissions:
+  contents: write
+jobs:
+  publish-v1-4:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    if: github.repository == 'juceliocoelho2022/cx-intelligence'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Verify release source and notes
+        run: |
+          test -f docs/RELEASE_NOTES_V1.4.0.md
+          git cat-file -e ce9aa4842a089e62acf9bf1ce3ded5cb23876ab2^{commit}
+          grep -q 'Downloads' docs/RELEASE_NOTES_V1.4.0.md || grep -q 'Markdown' docs/RELEASE_NOTES_V1.4.0.md
+      - name: Publish tag and GitHub Release only once
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v1.4.0 >/dev/null 2>&1; then
+            echo 'Release already exists; no duplicate created.'
+            exit 0
+          fi
+          gh release create v1.4.0 --target ce9aa4842a089e62acf9bf1ce3ded5cb23876ab2 \
+            --title 'CX Intelligence v1.4.0 — Executive BI Reports' \
+            --notes-file docs/RELEASE_NOTES_V1.4.0.md
+      - name: Verify published release and immutable tag target
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view v1.4.0 --json isDraft,isPrerelease,tagName,body --jq '.tagName + " " + (.isDraft|tostring) + " " + (.isPrerelease|tostring)' | grep -q 'v1.4.0 false false'
+          test "$(git rev-list -n 1 v1.4.0)" = "ce9aa4842a089e62acf9bf1ce3ded5cb23876ab2" || (git fetch origin tag v1.4.0 && test "$(git rev-list -n 1 v1.4.0)" = "ce9aa4842a089e62acf9bf1ce3ded5cb23876ab2")
+          gh release view v1.4.0 --json body --jq '.body' | grep -q 'Business Intelligence'
+          echo 'Official v1.4.0 release verified.'
