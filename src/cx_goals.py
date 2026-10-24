@@ -168,6 +168,135 @@ def change_action_status(actions, action_id, new_status, changed_on):
     return updated
 
 
+
+def edit_action(actions, action_id, *, title, hypothesis, changed_on):
+    """Edit descriptive fields only, recording a separate immutable revision log."""
+    if not isinstance(actions, list) or not any(a.get("id") == action_id for a in actions):
+        raise ValueError("Ação não encontrada")
+    title = _short_text(title, "Título", 120)
+    hypothesis = _short_text(hypothesis, "Hipótese de investigação", 400)
+    when = _date(changed_on, "Data da edição")
+    updated = []
+    for a in actions:
+        if a["id"] != action_id:
+            updated.append(a)
+            continue
+        if when < a["created_on"] or when < a["events"][-1]["on"]:
+            raise ValueError("Data da edição anterior ao histórico da ação")
+        edits = a.get("edits", [])
+        if edits and when < edits[-1]["on"]:
+            raise ValueError("Data da edição anterior à última revisão")
+        if a["title"] == title and a["hypothesis"] == hypothesis:
+            updated.append(a)
+            continue
+        updated.append({
+            **a, "title": title, "hypothesis": hypothesis,
+            "edits": [*edits, {"on": when,
+                              "old_title": a["title"], "new_title": title,
+                              "old_hypothesis": a["hypothesis"],
+                              "new_hypothesis": hypothesis}],
+        })
+    return updated
+
+
+def load_plan_actions(blob, max_bytes=200_000, max_actions=100):
+    """Recover actions from v1.5 synthetic-only exports; discard stale goal scores.
+
+    Strictly validates every imported action and event. Never imports or executes
+    arbitrary tasks, overwrites a database, or claims effects on actual KPIs.
+    """
+    if not isinstance(blob, bytes) or len(blob) > max_bytes:
+        raise ValueError("Arquivo inválido ou maior que 200 KB")
+    try:
+        def unique_keys(items):
+            result = {}
+            for key, value in items:
+                if key in result:
+                    raise ValueError("Arquivo contém chaves duplicadas")
+                result[key] = value
+            return result
+        payload = json.loads(
+            blob.decode("utf-8"), object_pairs_hook=unique_keys,
+            parse_constant=lambda val: (_ for _ in ()).throw(ValueError("Valor JSON não finito")),
+        )
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError("Arquivo não é um JSON UTF-8 válido") from exc
+    if not isinstance(payload, dict) or payload.get("schema_version") != "1.5.0-beta" or (
+        payload.get("source") != "synthetic_primary_only" or
+        payload.get("persistence") != "session_only"
+    ):
+        raise ValueError("O arquivo deve ser uma exportação sintética v1.5 do CX Intelligence")
+    actions = payload.get("actions")
+    if not isinstance(actions, list) or len(actions) > max_actions:
+        raise ValueError("Lista de ações inválida ou excede 100 registros")
+    ids, verified = set(), []
+    required = {"id", "metric", "title", "hypothesis", "owner_role", "due_date",
+                "created_on", "status", "scope", "events"}
+    for a in actions:
+        if not isinstance(a, dict) or not required.issubset(a) or set(a).difference(required | {"edits"}):
+            raise ValueError("Ação exportada contém campos inválidos")
+        aid = a["id"]
+        if not isinstance(aid, str) or len(aid) < 2 or not aid.startswith("A") or not aid[1:].isascii() or not aid[1:].isdigit() or aid in ids:
+            raise ValueError("ID de ação inválido ou duplicado")
+        ids.add(aid)
+        if a["metric"] not in METRICS or a["owner_role"] not in ROLES or a["status"] not in STATUSES:
+            raise ValueError("Indicador, área ou status desconhecido")
+        _short_text(a["title"], "Título", 120)
+        _short_text(a["hypothesis"], "Hipótese de investigação", 400)
+        created = _date(a["created_on"], "Criação")
+        if _date(a["due_date"], "Prazo") < created:
+            raise ValueError("Prazo anterior à criação")
+        scope = a["scope"]
+        if not isinstance(scope, dict) or set(scope) != {"period_start", "period_end", "topics", "channels"}:
+            raise ValueError("Recorte inválido")
+        start = _date(scope["period_start"], "Início do recorte")
+        end = _date(scope["period_end"], "Fim do recorte")
+        if start > end:
+            raise ValueError("Datas do recorte invertidas")
+        for key in ("topics", "channels"):
+            vals = scope[key]
+            if not isinstance(vals, list) or len(vals) > 40 or len(vals) != len(set(vals)):
+                raise ValueError("Filtros inválidos")
+            for val in vals:
+                _short_text(val, "Filtro", 80)
+        events = a["events"]
+        if not isinstance(events, list) or not 1 <= len(events) <= 100:
+            raise ValueError("Histórico de estados inválido")
+        last_status, last_day = None, created
+        for event in events:
+            if not isinstance(event, dict) or set(event) != {"on", "status"}:
+                raise ValueError("Evento inválido")
+            day = _date(event["on"], "Evento")
+            state = event["status"]
+            if last_status is None:
+                if state != "Planejada" or day != created:
+                    raise ValueError("Primeiro evento deve ser Planejada na criação")
+            elif state not in TRANSITIONS[last_status] or day < last_day:
+                raise ValueError("Transição ou data inválida no histórico")
+            last_status, last_day = state, day
+        if last_status != a["status"]:
+            raise ValueError("Estado atual diverge do histórico")
+        edits = a.get("edits", [])
+        if not isinstance(edits, list) or len(edits) > 100:
+            raise ValueError("Histórico de edições inválido")
+        last_edit = created
+        for revision in edits:
+            if not isinstance(revision, dict) or set(revision) != {"on", "old_title", "new_title", "old_hypothesis", "new_hypothesis"}:
+                raise ValueError("Revisão inválida")
+            edit_day = _date(revision["on"], "Edição")
+            if edit_day < last_edit:
+                raise ValueError("Histórico de edições fora de ordem")
+            last_edit = edit_day
+            for key, lim in (("old_title", 120), ("new_title", 120),
+                             ("old_hypothesis", 400), ("new_hypothesis", 400)):
+                _short_text(revision[key], key, lim)
+        if edits and (edits[-1]["new_title"] != a["title"] or
+                      edits[-1]["new_hypothesis"] != a["hypothesis"]):
+            raise ValueError("Título ou hipótese diverge da última revisão")
+        verified.append(a)
+    return verified
+
+
 def report_payload(goals, actions, period):
     """JSON-ready, deterministic snapshot. No persistence or real execution claim."""
     if not isinstance(goals, list) or not isinstance(actions, list):
