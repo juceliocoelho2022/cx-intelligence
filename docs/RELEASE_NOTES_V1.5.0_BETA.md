@@ -46,6 +46,21 @@ Tentou-se reproduzir o fluxo completo contra a **URL pública do Render**, com u
 
 **Interpretação:** essas duas tentativas **não comprovam falha da lógica de restauração ou edição**, mas também **não comprovam aceite de ponta a ponta na instância pública**. A sequência de criar, mudar estado, editar, exportar e restaurar foi integralmente concluída no [CI local Chrome #40123393537](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40123393537) com quatro jobs verdes e 179 testes Python. A performance e os reruns completos no Render Free merecem otimização futura. O workflow público temporário foi retirado após o diagnóstico, e não houve dados reais nem persistência em servidor.
 
+## Aceite manual confirmado — A0001 em andamento (24/10/2026)
+
+O responsável enviou **novas exportações JSON e Markdown** após restaurar o plano `A0001` no navegador e alterar seu estado para **Em andamento**. A conferência direta dos dois arquivos confirmou:
+
+- Ação: `A0001`, **Investigar causas de insatisfação na jornada Pix**, área fictícia **CX** e prazo **07/11/2026**.
+- **Dois eventos de estado**: `Planejada` em **24/10/2026** e `Em andamento` também em **24/10/2026**. O estado atual corresponde ao último evento.
+- **Uma revisão de título** registrada em `edits`, com título anterior e posterior explícitos. A hipótese anterior e posterior coincidem, não havendo alteração do seu texto.
+- O `scope` original permanece intacto: os seis assuntos (**Acesso ao app, Cartão, Conta, Empréstimo, Pix e Tarifas**) e os quatro canais (**App, Chat, Email e Telefone**), no período **06/10/2026–19/10/2026**. O título sobre Pix **não equivale** a filtro exclusivamente Pix.
+- **685 tickets fictícios**, CSAT **62,19%** versus meta **70%** (déficit **7,81 pp**), resolução **87,45%** versus **90%** (déficit **2,55 pp**), tempo médio **10,89 h** versus teto **10 h** (excesso **0,89 h**).
+- Arquivos com `schema_version: 1.5.0-beta`, `source: synthetic_primary_only` e `persistence: session_only`. Ambos contêm o título corrigido e estado atualizado.
+
+**Resultado:** aceite manual de **restauração, transição fictícia de status, revisão preservada e exportação consistente**. Não houve ação executada em CX real, sincronização com backend ou resultado causal. Não significa que o histórico de eventos seja persistente fora do JSON e da sessão do navegador.
+
+A suíte Python mais recente não apontou defeito de negócio. O CI #40124585281 teve uma falha no teste móvel antigo de v1.3 por uma asserção executada antes da hidratação do Streamlit; ampliou-se a espera de inicialização na suíte de navegador, sem alterar o produto. Sua validação deve ser observada no próximo CI antes de anunciar que todos os jobs voltaram ao verde.
+
 ## Condições de aceite
 - A suíte Python principal deve passar com Python 3.10, 3.12 e 3.14.
 - O teste móvel Chrome 390 × 844 px verifica presença da aba, avaliação de metas, criação de uma ação fictícia, downloads reais JSON/Markdown e transição de estado com evento de auditoria correspondente.
