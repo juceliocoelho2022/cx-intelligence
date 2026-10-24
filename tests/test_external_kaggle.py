@@ -79,3 +79,45 @@ def test_sql_does_not_upsert_unchanged_rows():
 def test_empty_file_is_rejected(tmp_path):
     with pytest.raises(ValueError, match="1 a 50.000"):
         prepare_kaggle_csv(write_csv(tmp_path, sample().iloc[0:0]))
+
+
+def test_invalid_csv_is_rejected_without_database_connection(tmp_path, monkeypatch):
+    import src.external_kaggle as module
+    frame = sample()
+    frame.loc[0, "Ticket Status"] = "not-a-status"
+    def connection_forbidden(*args, **kwargs):
+        raise AssertionError("O banco não deve ser acessado antes da validação")
+    monkeypatch.setattr(module.psycopg, "connect", connection_forbidden)
+    with pytest.raises(ValueError, match="ticket_status"):
+        module.import_kaggle_csv(write_csv(tmp_path, frame))
+
+
+def test_transactional_import_uses_allowlisted_columns(tmp_path, monkeypatch):
+    import src.external_kaggle as module
+    statements = []
+
+    class FakeCursor:
+        rowcount = 1
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def execute(self, sql, params=None):
+            statements.append((sql, params))
+            return self
+
+    class FakeConnection:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def cursor(self):
+            return FakeCursor()
+
+    monkeypatch.setattr(module.psycopg, "connect", lambda *args: FakeConnection())
+    result = module.import_kaggle_csv(write_csv(tmp_path, sample()), dsn="test-only")
+    inserts = [args for sql, args in statements if "INSERT INTO cx_external_support_tickets" in sql]
+    assert len(inserts) == 2
+    assert result["affected_rows"] == 2
+    assert all(len(args) == len(COLUMNS) for args in inserts)
+    assert all("private@example.com" not in str(args) for args in inserts)
