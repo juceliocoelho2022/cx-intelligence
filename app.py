@@ -11,6 +11,7 @@ from src.model import train_and_evaluate
 from src.nlp import train_sentiment, classify_message, compare_models
 from src.anomalies import detect_volume_anomalies, weekly_volumes
 from src.insights import segment_insights
+from src.advanced_cx import weekly_cx_trends, segment_benchmarks, observed_repeat_30d
 from src.reports import build_report, render_markdown
 from src.audit import audit_manifest, export_manifest
 from src.ticket_events import schema_exists, load_event_history, load_status_as_of, load_ticket_status_as_of
@@ -61,7 +62,7 @@ st.sidebar.caption("🔒 KPIs principais: sintéticos; Kaggle em módulo isolado
 if PUBLIC_DEMO:
     st.sidebar.info("Demonstração pública: somente dados sintéticos gerados pelo projeto. Sem banco local, CSV Kaggle ou credenciais.")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
-st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.2</div>
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.3 (beta)</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
 if subset.empty:
@@ -77,7 +78,7 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
     slot.metric(name,value,help=tip)
 st.markdown('<div class="note">🔎 Os KPIs acima são exclusivamente do dataset sintético principal, não do Kaggle. * Reincidência e sentimento são rótulos simulados. Resolução não mede FCR; não calculamos NPS nem churn real.</div>',unsafe_allow_html=True)
-tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_report,tab_events,tab_kaggle,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📋 Relatório executivo","🕒 Histórico de tickets","🌐 Kaggle externo","🛡️ Qualidade dos dados"])
+tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_advanced,tab_report,tab_events,tab_kaggle,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📐 Analytics v1.3","📋 Relatório executivo","🕒 Histórico de tickets","🌐 Kaggle externo","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
     l,r=st.columns(2)
@@ -202,6 +203,101 @@ with tab_insights:
         st.download_button("⬇ Exportar diagnóstico CSV", insights.to_csv(index=False).encode("utf-8"),
                            "cx_diagnostico_sintetico.csv","text/csv")
         st.info("Recomendação: discutir segmentos sinalizados com CX, revisar mudanças de processo e analisar séries históricas antes de qualquer intervenção.")
+
+with tab_advanced:
+    st.subheader("Analytics avançado — comparação, incerteza e recontato")
+    st.caption("Versão v1.3: exclusivamente dados sintéticos. Análises descritivas, sem inferência causal, representatividade ou previsão operacional.")
+    st.markdown("#### 1. Evolução semanal de CX")
+    weekly_advanced = weekly_cx_trends(subset)
+    if weekly_advanced.empty:
+        st.info("Não há semanas disponíveis para o recorte.")
+    else:
+        week_chart = go.Figure()
+        week_chart.add_trace(go.Scatter(
+            x=weekly_advanced.week_start, y=weekly_advanced.ci_lower_pct,
+            mode="lines", line=dict(width=0), hoverinfo="skip",
+            showlegend=False, name="Limite inferior"))
+        week_chart.add_trace(go.Scatter(
+            x=weekly_advanced.week_start, y=weekly_advanced.ci_upper_pct,
+            mode="lines", fill="tonexty", fillcolor="rgba(255,121,45,0.15)",
+            line=dict(width=0), name="Intervalo Wilson 95%",
+            hoverinfo="skip"))
+        week_chart.add_trace(go.Scatter(
+            x=weekly_advanced.week_start, y=weekly_advanced.csat_pct,
+            mode="lines+markers", name="CSAT positivo (%)",
+            line=dict(color=COLORS["orange"], width=3)))
+        week_chart.update_layout(title="CSAT positivo semanal e faixa ilustrativa de Wilson (95%)",
+                                 xaxis_title="Semana iniciada na segunda-feira",
+                                 yaxis_title="CSAT positivo (%)", yaxis_range=[0, 100])
+        chart(week_chart)
+        st.caption("A faixa Wilson pressupõe observações independentes. Em amostras sintéticas e com múltiplos tickets por cliente, ela NÃO representa uma margem de erro validada para clientes reais.")
+        if weekly_advanced.edge_week.any():
+            st.info("As semanas nas bordas do período selecionado podem estar incompletas. Compare-as com cautela.")
+        st.dataframe(weekly_advanced, width="stretch", hide_index=True)
+        st.download_button("⬇ Exportar tendência semanal (CSV)",
+                           weekly_advanced.to_csv(index=False).encode("utf-8"),
+                           "cx_v13_tendencia_semanal_sintetica.csv", "text/csv",
+                           key="v13_weekly_export")
+    st.markdown("#### 2. Benchmark descritivo entre segmentos")
+    selected_dimension = st.radio("Comparar indicadores por",
+                                  ["Canal", "Assunto"], horizontal=True,
+                                  key="v13_benchmark_dimension")
+    advanced_dimension = "channel" if selected_dimension == "Canal" else "topic"
+    min_advanced = st.slider("Mínimo de tickets por segmento (v1.3)",
+                             min_value=10, max_value=150, value=30, step=10,
+                             key="v13_min_sample")
+    benchmarks = segment_benchmarks(subset, dimension=advanced_dimension,
+                                    min_sample=min_advanced)
+    if benchmarks.empty:
+        st.info("Nenhum segmento atingiu o limite mínimo. Ajuste os filtros ou a amostra.")
+    else:
+        baseline_csat = benchmarks.baseline_csat_pct.iloc[0]
+        fig_bench = go.Figure(go.Bar(
+            x=benchmarks.segment, y=benchmarks.csat_pct,
+            marker_color=COLORS["cyan"], name="CSAT positivo (%)",
+            error_y=dict(type="data", symmetric=False,
+                         array=(benchmarks.ci_upper_pct - benchmarks.csat_pct).clip(lower=0).tolist(),
+                         arrayminus=(benchmarks.csat_pct - benchmarks.ci_lower_pct).clip(lower=0).tolist())))
+        fig_bench.add_hline(y=float(baseline_csat), line_dash="dot",
+                            line_color=COLORS["orange"],
+                            annotation_text="Referência: recorte completo")
+        fig_bench.update_layout(title="CSAT por segmento (intervalos ilustrativos)",
+                                xaxis_title=selected_dimension, yaxis_title="CSAT positivo (%)",
+                                yaxis_range=[0, 100])
+        chart(fig_bench)
+        st.dataframe(benchmarks, width="stretch", hide_index=True)
+        st.download_button("⬇ Exportar comparação (CSV)",
+                           benchmarks.to_csv(index=False).encode("utf-8"),
+                           "cx_v13_benchmark_sintetico.csv", "text/csv",
+                           key="v13_benchmark_export")
+        st.caption("Lacunas em pontos percentuais usam como referência o recorte inteiro, que inclui cada segmento. Intervalos NÃO constituem teste de significância entre grupos.")
+    st.markdown("#### 3. Recontato encontrado no histórico sintético — janela de 30 dias")
+    st.warning("Esta métrica procura um NOVO ticket do mesmo customer_id em data posterior, dentro de 30 dias. Não é o rótulo sintético 'repeat_contact_30d', não mede FCR e não representa reincidência real de clientes.")
+    repeat_result = observed_repeat_30d(df, cohort=subset,
+                                        dimension=advanced_dimension,
+                                        min_sample=min_advanced)
+    rc = st.columns(4)
+    rc[0].metric("Tickets da coorte", repeat_result["cohort_tickets"])
+    rc[1].metric("Elegíveis (30 dias completos)", repeat_result["eligible_tickets"])
+    rc[2].metric("Sem janela completa", repeat_result["censored_tickets"])
+    rc[3].metric("Recontato em 30 dias", 
+                 f'{repeat_result["repeat_pct"]:.1f}%' if repeat_result["repeat_pct"] is not None else "N/A")
+    st.caption(f'Observação até {repeat_result["as_of"] or "sem dados"}; tickets após {repeat_result["cutoff"] or "sem corte"} são excluídos da taxa. A busca de tickets posteriores utiliza a base sintética inteira, inclusive quando os filtros ocultam os atendimentos seguintes.')
+    if repeat_result["eligible_tickets"] == 0:
+        st.info("Sem tickets com os 30 dias completos de observação. Amplie o período histórico.")
+    elif repeat_result["groups"].empty:
+        st.info("Há tickets elegíveis, mas nenhum grupo atingiu o tamanho mínimo de amostra.")
+    else:
+        chart(px.bar(repeat_result["groups"], x="segment", y="repeat_pct",
+                     title="Recontato por segmento (apenas coortes elegíveis)",
+                     labels={"segment": selected_dimension, "repeat_pct": "Recontato em 30 dias (%)"},
+                     color_discrete_sequence=[COLORS["orange"]]))
+        st.dataframe(repeat_result["groups"], width="stretch", hide_index=True)
+        st.download_button("⬇ Exportar coortes elegíveis (CSV)",
+                           repeat_result["groups"].to_csv(index=False).encode("utf-8"),
+                           "cx_v13_recontato_sintetico.csv", "text/csv",
+                           key="v13_repeat_export")
+    st.caption("Limitação: não existem horários intradiários, então tickets do mesmo dia não são tratados como recontato. Completude e representatividade de uma operação real não estão estabelecidas.")
 
 with tab_report:
     st.subheader("Relatório executivo de Customer Experience")
