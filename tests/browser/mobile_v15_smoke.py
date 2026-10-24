@@ -91,6 +91,9 @@ def check_v15_mobile():
             page.get_by_role("textbox", name="Título corrigido (até 120 caracteres)").fill(
                 "Investigar dificuldades na jornada Pix")
             page.get_by_role("button", name="Salvar correção da ação").click()
+            expect(page.get_by_text(
+                "Revisões de texto registradas: A0001: Investigar dificuldades na jornada Pix"
+            )).to_be_visible(timeout=45000)
             with page.expect_download(timeout=45000) as edited_event:
                 page.get_by_role("button", name="Exportar plano (.json)").click()
             edited_file = edited_event.value
