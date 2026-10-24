@@ -58,9 +58,23 @@ def check_v15_mobile():
             assert "Metas ilustrativas" in md_text
             assert "Investigar fricção no atendimento Pix" in md_text
             assert "apenas na sessão" in md_text
+            # Confirm that the action state survives rerender in this session
+            # and that the audit events are exported, without external side effects.
+            page.get_by_role("button", name="Atualizar estado fictício").click()
+            expect(page.get_by_text("1 ação(ões) fictícia(s) registrada(s) apenas nesta sessão.")).to_be_visible(timeout=45000)
+            with page.expect_download(timeout=45000) as updated_event:
+                page.get_by_role("button", name="Exportar plano (.json)").click()
+            updated_file = updated_event.value
+            updated_path = Path("artifacts/v15_plan_in_progress.json")
+            updated_file.save_as(updated_path)
+            updated_payload = json.loads(updated_path.read_text(encoding="utf-8"))
+            assert updated_payload["actions"][0]["status"] == "Em andamento"
+            assert [event["status"] for event in updated_payload["actions"][0]["events"]] == [
+                "Planejada", "Em andamento"
+            ]
             assert page.locator('[data-testid="stException"]').count() == 0
             assert not errors, "JavaScript page errors: " + str(errors)
-            print("PASS: v1.5 mobile 390x844; goal cards, action creation, and JSON+Markdown real downloads.")
+            print("PASS: v1.5 mobile 390x844; goals, action creation, session state transition and verified JSON/Markdown downloads.")
         except Exception:
             page.screenshot(path="artifacts/cx_v15_mobile_failure.png",
                             full_page=False)
