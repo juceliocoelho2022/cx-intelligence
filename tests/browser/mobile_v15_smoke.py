@@ -33,10 +33,10 @@ def check_v15_mobile():
             def full_script_runs():
                 # CI-only diagnostic lives outside the goal fragment. Any
                 # full-app rerun increments it; fragment-only actions do not.
-                locator = page.get_by_text(re.compile(r"v1\\.6 full app runs: \\d+"))
+                locator = page.get_by_text(re.compile(r"v1[.]6 full app runs: [0-9]+"))
                 content = locator.text_content(timeout=30000)
                 assert content is not None
-                return int(re.search(r"\\d+", content.split(":")[-1]).group())
+                return int(re.search(r"[0-9]+", content.split(":")[-1]).group())
             script_runs_before_actions = full_script_runs()
             title_box = page.get_by_role(
                 "textbox", name="Ação proposta (obrigatório; até 120 caracteres)")
