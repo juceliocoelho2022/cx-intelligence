@@ -41,6 +41,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Notas da Release oficial v1.3.0](docs/RELEASE_NOTES_V1.3.0.md) | 98 testes na suíte CI, Chrome móvel 390 px, melhorias de CX e checklist de publicação |
 | [Histórico da beta v1.3](docs/RELEASE_NOTES_V1.3.0_BETA.md) | Testes e melhorias que antecederam o preparo da release |
 | [BI e relatórios avançados v1.4](docs/BI_V1.4.md) | Comparação de períodos equivalentes, métricas e exportação executiva Markdown/HTML |
+| [Aceite técnico da v1.4 beta](docs/RELEASE_NOTES_V1.4.0_BETA.md) | 120 testes Python, Chrome mobile 390 px e checklist da beta |
 
 ## Stack
 `Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
@@ -165,7 +166,7 @@ A nova aba **📑 BI v1.4** compara janelas civis consecutivas de **7, 14 ou 30 
 - Tratamento transparente de períodos sem histórico suficiente, sem dados de base ou sem tickets atuais. Nunca são produzidas variações com denominador zero.
 - Benchmark por canal/assunto somente quando **ambos** os períodos atingem o tamanho mínimo de amostra configurado.
 - **Relatórios Markdown e HTML autocontido**, sem serviços externos; o HTML pode ser impresso como PDF pelo navegador e escapa valores textuais.
-- Testes determinísticos de datas, filtros, lacunas, resultados e escape de HTML. O primeiro CI completo da implementação passou com **120 testes Python** mais o teste de navegador móvel v1.3.
+- Testes determinísticos de datas, filtros, lacunas, resultados e escape de HTML. A suíte principal passou com **120 testes Python**, além de CI aprovado nas versões 3.10/3.12/3.14, integração PostgreSQL e **smoke test real de navegador móvel para a v1.4** (390 × 844 px). Consulte o [CI comprovado](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40109178661) e o [aceite da beta](docs/RELEASE_NOTES_V1.4.0_BETA.md).
 
 **A v1.4 permanece beta. A última tag/Release oficial continua sendo [v1.3.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0).** A demo pública continua com 4.000 tickets sintéticos, sem CSV Kaggle ou acesso ao banco de desenvolvimento. Consulte o [contrato de BI v1.4](docs/BI_V1.4.md).
 
