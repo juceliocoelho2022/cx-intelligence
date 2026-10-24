@@ -468,9 +468,12 @@ def render_private_plans_panel(principal):
     st.caption("Acesso via OIDC e PostgreSQL segregado. Apenas ações simuladas são "
                "persistidas, por escolha explícita; metas permanecem recalculadas.")
     if not st.user.is_logged_in or principal is None:
-        st.info("Use um provedor OIDC configurado em ambiente privado para salvar planos. "
-                "Esta opção está desativada na demonstração pública.")
-        if st.button("Entrar na área privada", key="cx_private_login"):
+        st.info("A persistência exige autenticação OIDC válida em instalação privada. "
+                "A demonstração pública não oferece login.")
+        if st.user.is_logged_in:
+            if st.button("Encerrar sessão OIDC inválida", key="cx_private_invalid_logout"):
+                st.logout()
+        elif st.button("Entrar na área privada", key="cx_private_login"):
             st.login()
         return
     if st.button("Sair da conta privada", key="cx_private_logout"):
