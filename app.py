@@ -13,6 +13,7 @@ from src.anomalies import detect_volume_anomalies, weekly_volumes
 from src.insights import segment_insights
 from src.advanced_cx import weekly_cx_trends, segment_benchmarks, observed_repeat_30d
 from src.reports import build_report, render_markdown
+from src.bi_reports import compare_periods, render_bi_markdown, render_bi_html
 from src.audit import audit_manifest, export_manifest
 from src.ticket_events import schema_exists, load_event_history, load_status_as_of, load_ticket_status_as_of
 from src.external_kaggle import external_schema_exists, load_external_tickets, SOURCE_URL
@@ -92,7 +93,7 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     slot.metric(name,value,help=tip)
 st.markdown('<div class="note">🔎 Os KPIs acima são exclusivamente do dataset sintético principal, não do Kaggle. * Reincidência e sentimento são rótulos simulados. Resolução não mede FCR; não calculamos NPS nem churn real.</div>',unsafe_allow_html=True)
 st.caption("📱 No celular: deslize a faixa de abas para a esquerda até encontrar 📐 Analytics v1.3.")
-tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_advanced,tab_report,tab_events,tab_kaggle,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📐 Analytics v1.3","📋 Relatório executivo","🕒 Histórico de tickets","🌐 Kaggle externo","🛡️ Qualidade dos dados"])
+tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_advanced,tab_report,tab_bi,tab_events,tab_kaggle,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📐 Analytics v1.3","📋 Relatório executivo","📑 BI v1.4","🕒 Histórico de tickets","🌐 Kaggle externo","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
     l,r=st.columns(2)
@@ -335,6 +336,75 @@ with tab_report:
         st.json(manifest)
         st.caption("Hash SHA-256 reproduzível do recorte; não é assinatura nem certificação de origem.")
     st.info("As recomendações não são decisões automatizadas. Valide amostras, integridade, sazonalidade e hipóteses junto ao time de CX.")
+
+with tab_bi:
+    st.subheader("Business Intelligence — Relatório Executivo Comparativo")
+    st.caption("v1.4 beta · Somente dados sintéticos. Janelas civis consecutivas de igual duração; não são séries ajustadas por sazonalidade.")
+    left_control, middle_control, right_control = st.columns([1, 1, 1])
+    with left_control:
+        bi_days = st.selectbox("Comparar os últimos", [7, 14, 30], index=1,
+                               format_func=lambda day: f"{day} dias",
+                               key="bi_window_days")
+    with middle_control:
+        bi_dimension_name = st.selectbox("Segmentar por", ["Canal", "Assunto"],
+                                         key="bi_group_dimension")
+    with right_control:
+        bi_minimum = st.selectbox("Mínimo por grupo e período", [10, 20, 30, 50, 100],
+                                  index=2, key="bi_minimum")
+    # Sidebar date control chooses the reference END day. BI window length is
+    # independent of the sidebar start day, preserving equal calendar periods.
+    bi_end_date = dates[1] if len(dates) == 2 else subset.date.max().date()
+    bi_comparison = compare_periods(
+        df, end_date=bi_end_date, window_days=bi_days,
+        dimension="channel" if bi_dimension_name == "Canal" else "topic",
+        topics=topics, channels=channels, min_sample=bi_minimum,
+    )
+    current_period = bi_comparison["period_current"]
+    previous_period = bi_comparison["period_previous"]
+    st.caption(f"Período atual: {current_period['start']} a {current_period['end']} · "
+               f"Anterior: {previous_period['start']} a {previous_period['end']}. "
+               "Os filtros de Canal/Assunto são aplicados aos dois períodos; o início escolhido na barra lateral NÃO altera a duração da comparação.")
+    if bi_comparison["status"] != "comparable":
+        reason = {
+            "insufficient_history": "O dataset não cobre os dois períodos completos. Variações não calculadas.",
+            "empty_baseline": "Não há atendimentos do segmento selecionado no período anterior. Variações não calculadas.",
+            "empty_current": "Não há atendimentos do segmento selecionado no período atual. Variações não calculadas.",
+        }.get(bi_comparison["status"], "Comparação indisponível")
+        st.warning(reason)
+    metric_cards = st.columns(4)
+    for container, item in zip(metric_cards, bi_comparison["metrics"]):
+        val = item["current"]
+        unit = "h" if item["metric"] == "avg_resolution_hours" else "%" if item["metric"] in ("csat_pct", "resolved_pct") else ""
+        current_label = f"{val:.2f}{unit}" if val is not None else "N/A"
+        change = item["delta"]
+        delta_label = (f'{change:+.2f} {item["delta_unit"]}' if change is not None else None)
+        container.metric(item["label"], current_label, delta=delta_label,
+                         help="Comparação apenas descritiva. Percentuais em pontos percentuais (pp); volume em variação relativa (%).")
+    st.markdown("#### Comparação entre segmentos")
+    seg_table = pd.DataFrame(bi_comparison["segments"])
+    if seg_table.empty:
+        st.info("Nenhum segmento comparável no mínimo amostral selecionado. A exportação registrará essa limitação.")
+    else:
+        chart(px.bar(seg_table, x="segment", y="csat_delta_pp",
+                     title="Mudança descritiva de CSAT (pp): período atual vs anterior",
+                     labels={"segment": bi_dimension_name, "csat_delta_pp": "Mudança (pp)"},
+                     color_discrete_sequence=[COLORS["cyan"]]))
+        st.dataframe(seg_table, width="stretch", hide_index=True)
+    st.caption(f'Segmentos omitidos por amostra insuficiente: {bi_comparison["segments_excluded_small_sample"]}. '
+               "Um grupo entra na comparação apenas se AMBOS os períodos tiverem tickets suficientes.")
+    bi_md = render_bi_markdown(bi_comparison)
+    bi_html = render_bi_html(bi_comparison)
+    st.markdown("#### Relatório executivo pronto para compartilhar")
+    st.info("O relatório HTML é autocontido e formatado para impressão. Abra-o no navegador e selecione Imprimir → Salvar como PDF, se desejar. Nenhum dado de cliente real é incluído.")
+    download_md, download_html = st.columns(2)
+    download_md.download_button("⬇ Relatório comparativo (.md)",
+                               bi_md.encode("utf-8"), "cx_bi_v14_sintetico.md", "text/markdown",
+                               key="bi_v14_markdown")
+    download_html.download_button("⬇ Relatório para impressão (.html)",
+                                 bi_html.encode("utf-8"), "cx_bi_v14_sintetico.html", "text/html",
+                                 key="bi_v14_html")
+    with st.expander("Ver prévia e limitações metodológicas", expanded=False):
+        st.markdown(bi_md)
 
 with tab_events:
     st.subheader("Histórico imutável de eventos dos tickets")
