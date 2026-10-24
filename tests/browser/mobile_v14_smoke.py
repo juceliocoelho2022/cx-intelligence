@@ -20,18 +20,18 @@ def check_bi_mobile():
         page.on("pageerror", lambda err: js_errors.append(str(err)))
         try:
             page.goto(BASE_URL, wait_until="domcontentloaded", timeout=90_000)
-            expect(page.get_by_text("4.000", exact=True).first).to_be_visible()
+            # Render Free instances may cold-start and generate 4,000 tickets on first visit.\n            expect(page.get_by_text("4.000", exact=True).first).to_be_visible(timeout=110_000)
             assert page.evaluate("window.innerWidth") == 390
             tab = page.get_by_role("tab", name=re.compile(r"BI v1\.4"))
             tab.scroll_into_view_if_needed()
             tab.click()
-            expect(page.get_by_text("Business Intelligence — Relatório Executivo Comparativo")).to_be_visible()
-            expect(page.get_by_text("Comparar os últimos")).to_be_visible()
-            expect(page.get_by_text("Segmentar por")).to_be_visible()
-            expect(page.get_by_text("Comparação entre segmentos")).to_be_visible()
-            expect(page.get_by_text("Relatório executivo pronto para compartilhar")).to_be_visible()
-            expect(page.get_by_text("Relatório comparativo (.md)")).to_be_visible()
-            expect(page.get_by_text("Relatório para impressão (.html)")).to_be_visible()
+            expect(page.get_by_text("Business Intelligence — Relatório Executivo Comparativo")).to_be_visible(timeout=45_000)
+            expect(page.get_by_text("Comparar os últimos")).to_be_visible(timeout=45_000)
+            expect(page.get_by_text("Segmentar por")).to_be_visible(timeout=45_000)
+            expect(page.get_by_text("Comparação entre segmentos")).to_be_visible(timeout=45_000)
+            expect(page.get_by_text("Relatório executivo pronto para compartilhar")).to_be_visible(timeout=45_000)
+            expect(page.get_by_text("Relatório comparativo (.md)")).to_be_visible(timeout=45_000)
+            expect(page.get_by_text("Relatório para impressão (.html)")).to_be_visible(timeout=45_000)
             # Verify downloads actually contain report bytes, not just buttons.
             with page.expect_download(timeout=40_000) as markdown_event:
                 page.get_by_role("button", name=re.compile("Relatório comparativo")).click()
