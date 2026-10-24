@@ -32,6 +32,26 @@ def check_bi_mobile():
             expect(page.get_by_text("Relatório executivo pronto para compartilhar")).to_be_visible()
             expect(page.get_by_text("Relatório comparativo (.md)")).to_be_visible()
             expect(page.get_by_text("Relatório para impressão (.html)")).to_be_visible()
+            # Verify downloads actually contain report bytes, not just buttons.
+            with page.expect_download(timeout=40_000) as markdown_event:
+                page.get_by_role("button", name=re.compile("Relatório comparativo")).click()
+            markdown = markdown_event.value
+            markdown_path = Path("artifacts/bi_v14_smoke.md")
+            markdown.save_as(markdown_path)
+            markdown_text = markdown_path.read_text(encoding="utf-8")
+            assert markdown.suggested_filename == "cx_bi_v14_sintetico.md"
+            assert "Dados: 100% sintéticos" in markdown_text
+            assert "Indicadores comparativos" in markdown_text
+            with page.expect_download(timeout=40_000) as html_event:
+                page.get_by_role("button", name=re.compile("Relatório para impressão")).click()
+            html = html_event.value
+            html_path = Path("artifacts/bi_v14_smoke.html")
+            html.save_as(html_path)
+            html_text = html_path.read_text(encoding="utf-8")
+            assert html.suggested_filename == "cx_bi_v14_sintetico.html"
+            assert "<!DOCTYPE html>" in html_text
+            assert "Período atual" in html_text
+            assert "Dados 100% sintéticos" in html_text
             assert page.locator('[data-testid="stException"]').count() == 0
             assert not js_errors, f"Erros de JavaScript: {js_errors}"
             modebars = page.locator('[data-testid="stPlotlyChart"] .modebar')
@@ -39,7 +59,7 @@ def check_bi_mobile():
                 assert modebars.first.evaluate(
                     "node => getComputedStyle(node).display"
                 ) == "none", "A barra Plotly cobre o gráfico no celular"
-            print("PASS: v1.4 BI mobile 390x844; controls, comparison, executive HTML/Markdown exports.")
+            print("PASS: v1.4 BI mobile 390x844; real Markdown+HTML downloads with verified content.")
         except Exception:
             page.screenshot(path="artifacts/cx_v14_mobile_failure.png", full_page=False)
             raise
