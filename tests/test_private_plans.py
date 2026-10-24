@@ -16,6 +16,7 @@ from src.cx_goals import create_action, edit_action
 from src.private_plans import (
     PlanConflict, PrivatePlanError, load_private_plan, list_private_plans,
     principal_from_claims, private_storage_enabled, save_private_plan,
+    delete_private_plan, _dsn,
 )
 
 ISSUER = "https://accounts.example.test"
@@ -49,6 +50,19 @@ def actions():
 ])
 def test_private_mode_never_enabled_on_public_demo(env, enabled):
     assert private_storage_enabled(env) is enabled
+
+
+def test_remote_private_postgres_requires_verified_tls():
+    assert _dsn("postgresql://user:pass@localhost:5432/cx") == (
+        "postgresql://user:pass@localhost:5432/cx"
+    )
+    with pytest.raises(PrivatePlanError, match="verify-full"):
+        _dsn("postgresql://user:pass@db.example.test:5432/cx?sslmode=require")
+    with pytest.raises(PrivatePlanError, match="verify-full"):
+        _dsn("dbname=cx host=localhost hostaddr=192.0.2.2 user=test")
+    assert _dsn(
+        "postgresql://user:pass@db.example.test:5432/cx?sslmode=verify-full"
+    ).endswith("sslmode=verify-full")
 
 
 def test_oidc_subject_is_not_email_and_is_tenant_scoped():
@@ -186,3 +200,18 @@ def test_private_db_isolates_users_and_uses_optimistic_locking(private_database)
                         (bob.owner_key,))
             cur.execute("SELECT count(*) FROM cx_private_action_plans")
             assert cur.fetchone()[0] == 0
+
+    with pytest.raises(PlanConflict):
+        delete_private_plan(bob, saved["id"], 2, dsn=private_database)
+    with pytest.raises(PlanConflict):
+        delete_private_plan(alice, saved["id"], 1, dsn=private_database)
+    assert delete_private_plan(alice, saved["id"], 2, dsn=private_database)
+    with pytest.raises(PrivatePlanError, match="não encontrado"):
+        load_private_plan(alice, saved["id"], dsn=private_database)
+
+
+def test_private_app_role_rejects_superuser_database(private_database):
+    dsn = os.getenv("TEST_DATABASE_URL")
+    with pytest.raises(PrivatePlanError, match="papel privilegiado"):
+        save_private_plan(principal("admin-check"), "Não permitido", actions(),
+                          dsn=dsn)
