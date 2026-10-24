@@ -1,7 +1,7 @@
 # CX Intelligence v1.4.0 — Beta | Executive BI Reports
 
 **Data:** 24/10/2026
-**Status:** Beta validada no CI; a última tag e GitHub Release oficial continuam sendo **v1.3.0**. Não anunciar v1.4.0 como release final.
+**Status do documento:** histórico da fase beta, encerrada após a publicação da [Release oficial v1.4.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.4.0) em 24/10/2026. As pendências e incidentes abaixo registram etapas anteriores ao aceite final.
 
 ## Funcionalidades
 - KPI executivo com comparação de 7, 14 ou 30 dias civis adjacentes.
@@ -48,7 +48,7 @@ Os dois botões de download foram clicados, **mas a ferramenta de navegação n�
 
 O arquivo `/static/js/Metric.DMz1h4un.js` pôde ser obtido da URL pública em uma requisição posterior à falha. Essa constatação mostra que o recurso estava disponível naquele momento, **sem provar por que a importação falhou antes**. O Render estava realizando vários deploys automáticos em sequência durante o diagnóstico, mas o vínculo causal não foi estabelecido.
 
-**Mitigação adotada:** `requirements.txt` passou a fixar `streamlit==1.66.1`, a versão vista nos logs do Render Live, para manter o conjunto de arquivos JavaScript consistente entre builds reproduzidos. A versão foi fixada para previsibilidade, **não como correção comprovada do erro transitório**. São recomendáveis a verificação dos downloads no Render após um deploy estável e o acompanhamento de novos erros.
+**Registro histórico da mitigação:** a tentativa inicial foi fixar `streamlit==1.66.1`, mas ela se revelou incompatível com Python 3.10 no CI. A versão final implantada é **`streamlit==1.65.0`**, testada em Python 3.10, 3.12 e 3.14. Esse pin fornece reprodutibilidade, **sem comprovar a causa exata da falha intermitente anterior**.
 
 ## Correção de deploy e compatibilidade — 24/10/2026
 
@@ -60,6 +60,14 @@ Após inspeção dos logs do Render, foi encontrada uma regressão temporária n
 
 Um smoke test público independente está sendo conduzido apenas depois da estabilização do deploy, conferindo downloads efetivos de `.md` e `.html`. **Não anunciar sucesso de download público sem artefatos inspecionados**.
 
+## Aceite final e promoção oficial em 24/10/2026
+
+**Pendência do download remoto encerrada:** após estabilização do Render, o smoke test público foi reexecutado e conseguiu baixar diretamente da URL `https://cx-intelligence-demo.onrender.com/` os arquivos **Markdown (1.902 caracteres)** e **HTML (3.522 caracteres)**, validando nomes e conteúdo. Evidência: [GitHub Actions #40117915523](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40117915523).
+
+**Release oficial v1.4.0:** [GitHub Release](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.4.0), tag no commit `ce9aa484`, quatro jobs do CI aprovados ([CI da versão](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40118970167)) e deploy do mesmo commit em estado **Live** no Render.
+
+As tarefas marcadas como pendentes nas seções históricas anteriores devem ser lidas no contexto temporal da beta; a validação de download foi concluída. Os incidentes de cache/importação JS não têm causa única comprovada, mas a execução final passou. O teste manual da versão final no Android físico permanece complementar, não obrigatório para o aceite.
+
 ## Critérios e pendências
 - [x] Contrato analítico e modelo de comparação.
 - [x] Testes de fronteira de período, filtros, casos ausentes, determinismo e segurança da exportação HTML.
@@ -69,9 +77,9 @@ Um smoke test público independente está sendo conduzido apenas depois da estab
 - [x] Validar downloads reais Markdown/HTML no navegador Chrome automatizado em CI, incluindo conteúdo dos arquivos.
 - [x] Validar download, abertura e renderização do relatório HTML no navegador local Windows.
 - [x] Validar abertura e conteúdo do Markdown exportado no VS Code local, além do HTML já verificado no Windows.
-- [ ] Confirmar os downloads **via Render público** após investigar o erro de importação dinâmica JS observado em testes remotos. Atualmente a execução falha antes dos botões.
+- [x] **Downloads via Render público**: Markdown e HTML baixados e inspecionados no GitHub Actions após estabilização do deploy; detalhes no aceite final acima.
 - [ ] Inspecionar a aba BI v1.4 no Android físico, caso desejado para a Release final.
-- [ ] Promover para Git tag e GitHub Release v1.4.0 após aceite.
+- [x] Publicar Git tag e GitHub Release v1.4.0 no commit aprovado `ce9aa484`.
 
 ## Limitações
 **Os números são inteiramente sintéticos.** Comparações são descritivas, não causais; a seleção de janelas não ajusta sazonalidade, mix ou dias úteis. A cobertura temporal deriva de datas extremas e não certifica completude da ingestão. Resolvidos não é FCR, CSAT não é NPS, e não há churn medido.
