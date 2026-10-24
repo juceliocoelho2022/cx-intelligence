@@ -36,6 +36,19 @@ h1,h2,h3 {letter-spacing:-.025em}
 [data-testid="stMetricLabel"] {color:#ADBFD5}
 [data-testid="stMetricValue"] {color:#F2F7FE;font-size:1.8rem}
 [data-testid="stTabs"] button[aria-selected="true"] {color:#FF792D}
+/* Narrow viewport: compact KPI cards and prevent Plotly's floating toolbar
+   from covering chart headings on Android and other touchscreen layouts. */
+@media (max-width: 767px) {
+  .hero {padding:18px 17px;margin-bottom:12px}
+  .hero h1 {font-size:1.95rem;line-height:1.14}
+  .eyebrow {letter-spacing:.09em;font-size:.68rem}
+  [data-testid="stMetric"] {min-height:102px;padding:12px}
+  [data-testid="stMetricValue"] {font-size:1.55rem}
+  [data-testid="stPlotlyChart"] .modebar,
+  [data-testid="stPlotlyChart"] .modebar-container {
+    display:none !important;
+  }
+}
 </style>""", unsafe_allow_html=True)
 
 @st.cache_data
@@ -78,6 +91,7 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
     slot.metric(name,value,help=tip)
 st.markdown('<div class="note">🔎 Os KPIs acima são exclusivamente do dataset sintético principal, não do Kaggle. * Reincidência e sentimento são rótulos simulados. Resolução não mede FCR; não calculamos NPS nem churn real.</div>',unsafe_allow_html=True)
+st.caption("📱 No celular: deslize a faixa de abas para a esquerda até encontrar 📐 Analytics v1.3.")
 tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_advanced,tab_report,tab_events,tab_kaggle,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📐 Analytics v1.3","📋 Relatório executivo","🕒 Histórico de tickets","🌐 Kaggle externo","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
