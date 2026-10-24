@@ -333,7 +333,7 @@ def export_plan_markdown(payload):
                 .replace("|", "\\|").replace("\n", " "))
     p = payload["period"]
     lines = [
-        "# CX Intelligence — Metas e Plano de Ação | v1.5 beta",
+        "# CX Intelligence — Metas e Plano de Ação | v1.5.0",
         "", f"**Período analisado:** {p['start']} a {p['end']}",
         "", "**Aviso:** " + payload["disclaimer"], "",
         "## Metas ilustrativas", "| Indicador | Observado | Meta | Status | Distância |",
