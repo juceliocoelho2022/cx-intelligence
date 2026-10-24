@@ -85,19 +85,27 @@ def demo_plan(ticket_id, opened_on, resolved):
     return events
 
 def seed_demo(dsn=None, limit=5):
+    """Seed a fixed prefix of synthetic tickets once; later runs do not expand it."""
     if not 1 <= limit <= 100:
         raise ValueError("limit inválido")
     dsn = dsn or connection_string()
     initialize_event_schema(dsn)
     with psycopg.connect(dsn, row_factory=dict_row) as conn:
-        rows = conn.execute("""SELECT t.ticket_id,t.date,t.resolved FROM cx_tickets t
-                               WHERE NOT EXISTS(SELECT 1 FROM cx_ticket_events e WHERE e.ticket_id=t.ticket_id)
-                               ORDER BY t.ticket_id LIMIT %s""", (limit,)).fetchall()
+        rows = conn.execute("""SELECT t.ticket_id, t.date, t.resolved,
+                               EXISTS(SELECT 1 FROM cx_ticket_events e WHERE e.ticket_id=t.ticket_id) AS has_history
+                               FROM cx_tickets t ORDER BY t.ticket_id LIMIT %s""",
+                            (limit,)).fetchall()
     created = 0
+    seeded = 0
     for row in rows:
+        if row["has_history"]:
+            continue
+        seeded += 1
         for key, ticket_id, status, at in demo_plan(row["ticket_id"], row["date"], bool(row["resolved"])):
-            created += append_ticket_event(ticket_id,key,status,at,"synthetic_demo",dsn)["outcome"] == "inserted"
+            result = append_ticket_event(ticket_id, key, status, at, "synthetic_demo", dsn)
+            created += result["outcome"] == "inserted"
     return {"tickets_seeded": seeded, "events_inserted": created}
+
 
 def schema_exists(dsn=None):
     with psycopg.connect(dsn or connection_string()) as conn:
