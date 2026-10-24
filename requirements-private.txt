@@ -1,0 +1,4 @@
+# Install only in private OIDC deployments, not on the public Render demo.
+-r requirements.txt
+Authlib>=1.3.2,<2
+httpx>=0.24.1,<1
