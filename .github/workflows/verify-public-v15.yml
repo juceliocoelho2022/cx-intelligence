@@ -1,0 +1,32 @@
+name: One-time production v1.5 action-plan acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/verify-public-v15.yml
+permissions:
+  contents: read
+jobs:
+  public-v15-session-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    env:
+      CX_SMOKE_URL: https://cx-intelligence-demo.onrender.com/
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install Chrome browser automation
+        run: python -m pip install 'playwright>=1.56,<2'
+      - name: Check public Render health
+        run: curl -fsSL --retry 6 --retry-delay 8 --retry-all-errors --max-time 45 https://cx-intelligence-demo.onrender.com/_stcore/health
+      - name: Validate live site action create, edit, status, restore and exports
+        run: python tests/browser/mobile_v15_smoke.py
+      - name: Save diagnostic browser evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v15-public-browser-diagnostic
+          path: artifacts/cx_v15_mobile_failure.png
+          if-no-files-found: warn
