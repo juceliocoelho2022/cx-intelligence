@@ -76,7 +76,7 @@ st.sidebar.caption("🔒 KPIs principais: sintéticos; Kaggle em módulo isolado
 if PUBLIC_DEMO:
     st.sidebar.info("Demonstração pública: somente dados sintéticos gerados pelo projeto. Sem banco local, CSV Kaggle ou credenciais.")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
-st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.3.0</div>
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.4 (beta)</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
 if subset.empty:
@@ -92,7 +92,7 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
     slot.metric(name,value,help=tip)
 st.markdown('<div class="note">🔎 Os KPIs acima são exclusivamente do dataset sintético principal, não do Kaggle. * Reincidência e sentimento são rótulos simulados. Resolução não mede FCR; não calculamos NPS nem churn real.</div>',unsafe_allow_html=True)
-st.caption("📱 No celular: deslize a faixa de abas para a esquerda até encontrar 📐 Analytics v1.3.")
+st.caption("📱 No celular: deslize a faixa de abas até 📐 Analytics v1.3 ou 📑 BI v1.4.")
 tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_advanced,tab_report,tab_bi,tab_events,tab_kaggle,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📐 Analytics v1.3","📋 Relatório executivo","📑 BI v1.4","🕒 Histórico de tickets","🌐 Kaggle externo","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
@@ -375,7 +375,8 @@ with tab_bi:
     for container, item in zip(metric_cards, bi_comparison["metrics"]):
         val = item["current"]
         unit = "h" if item["metric"] == "avg_resolution_hours" else "%" if item["metric"] in ("csat_pct", "resolved_pct") else ""
-        current_label = f"{val:.2f}{unit}" if val is not None else "N/A"
+        current_label = (format(int(val), ",").replace(",", ".") if item["metric"] == "tickets"
+                         else f"{val:.2f}{unit}") if val is not None else "N/A"
         change = item["delta"]
         delta_label = (f'{change:+.2f} {item["delta_unit"]}' if change is not None else None)
         container.metric(item["label"], current_label, delta=delta_label,
