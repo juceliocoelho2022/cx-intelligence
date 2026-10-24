@@ -223,6 +223,16 @@ def test_edited_action_can_be_restored_with_audited_revisions():
     assert restored[0]["edits"][0]["old_hypothesis"] == BASE["hypothesis"]
 
 
+def test_stable_release_schema_is_exported_and_beta_files_still_import():
+    original = create_action([], **BASE)
+    payload = report_payload(evaluate_goals(CURRENT), original,
+                             {"start": "2026-10-06", "end": "2026-10-19"})
+    assert payload["schema_version"] == "1.5.0"
+    assert load_plan_actions(export_plan_json(payload).encode("utf-8")) == original
+    legacy_beta = {**payload, "schema_version": "1.5.0-beta"}
+    assert load_plan_actions(export_plan_json(legacy_beta).encode("utf-8")) == original
+
+
 def test_legacy_v15_export_without_edits_restores_exact_action():
     action = create_action([], **BASE)
     payload = report_payload(evaluate_goals(CURRENT), action,
