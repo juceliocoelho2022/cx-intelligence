@@ -43,6 +43,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [BI e relatórios avançados v1.4](docs/BI_V1.4.md) | Comparação de períodos equivalentes, métricas e exportação executiva Markdown/HTML |
 | [Metas de CX e planos de ação v1.5.0](docs/GOALS_V1.5.md) | Metas configuráveis, ações fictícias por sessão, JSON/Markdown, revisão de texto e recuperação de planos |
 | [Performance v1.6 beta](docs/PERFORMANCE_V1.6.md) | Atualizações isoladas da aba Metas, cache de análises, contratos de invalidação e limites de autenticação/persistência |
+| [Planos privados opcionais v1.6](docs/PRIVATE_PLANS_V1.6.md) | OIDC, PostgreSQL 16, Row-Level Security, controle de revisão e isolamento da demo pública |
 | [Release oficial v1.5.0](docs/RELEASE_NOTES_V1.5.0.md) | Escopo, compatibilidade de planos beta, evidências de testes e ressalvas |
 | [Release oficial v1.4.0](docs/RELEASE_NOTES_V1.4.0.md) | BI avançado, 120 testes e downloads públicos HTML/Markdown verificados |
 | [Histórico da beta v1.4](docs/RELEASE_NOTES_V1.4.0_BETA.md) | Registro dos testes e incidentes corrigidos antes da publicação |
@@ -169,7 +170,7 @@ A nova etapa prioriza a resposta dos controles de Metas e Planos de Ação no Re
 - `st.fragment` isola as mudanças de estado e texto na aba Metas das análises das demais abas; editar uma ação não precisa refazer a página inteira.
 - Resultados de **risco sintético, benchmark NLP e BI** usam `st.cache_data` com chaves dependentes dos dados e filtros. Não se armazenam ações no cache global.
 - Novos testes cobrem hit/miss de cache, invalidação após alterar dados ou filtros e a sequência de criação, edição, atualização, exportação e importação no Chrome móvel.
-- **Não há autenticação nem persistência de planos na v1.6 beta**; a arquitetura de autenticação e armazenamento seguro é documentada como trabalho futuro. O site permanece demonstrativo e não deve receber informações reais de clientes.
+- **Persistência e login opcionais estão implementados em módulo privado experimental:** OIDC nativo, banco PostgreSQL com RLS por proprietário, importação de ações existentes e prevenção de sobrescrita por revisões. O recurso é bloqueado na demo pública, depende de instalação privada e ainda exige teste com um provedor OIDC real antes de uso operacional. Nenhuma informação de cliente real deve ser inserida na demo.
 
 Consulte [Performance v1.6](docs/PERFORMANCE_V1.6.md) e [Release estável v1.5.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.5.0).
 
