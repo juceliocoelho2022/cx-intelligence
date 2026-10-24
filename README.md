@@ -38,6 +38,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Kaggle externo v1.2](docs/KAGGLE_INTEGRATION.md) | CSV externo, minimização de dados, validação e análise separada |
 | [Notas de release v1.2](docs/RELEASE_NOTES_V1.2.0.md) | Evidências de CI, KPIs externos e checklist de aceite |
 | [Analytics avançado v1.3 (beta)](docs/ADVANCED_CX_V1.3.md) | Série semanal, faixas Wilson, benchmark e recontato com censura temporal |
+| [Aceite da beta v1.3](docs/RELEASE_NOTES_V1.3.0_BETA.md) | 96 testes na suíte CI, smoke test online e pendências antes da release oficial |
 
 ## Stack
 `Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
@@ -150,7 +151,7 @@ Nova aba **📐 Analytics v1.3** exclusivamente sobre os tickets sintéticos pri
 - **Recontato encontrado nos tickets fictícios**, distinto do alvo sintético `repeat_contact_30d`: procura novo ticket do mesmo cliente em data posterior até 30 dias, usa a base inteira como horizonte para evitar falsos negativos nos filtros, **exclui tickets sem 30 dias completos de acompanhamento** e não conta contatos no mesmo dia por falta de timestamp.
 - **Exportações CSV e testes unitários** para indicadores, prazos de 30/31 dias, censura, amostras mínimas e regras de domínio.
 
-Os resultados **não são FCR, churn nem recontato real de clientes**; o gerador reutiliza IDs por construção. A demo no Render continua com **dados sintéticos, sem PostgreSQL da máquina do usuário e sem CSV Kaggle**. A [GitHub Release v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0) permanece a versão oficialmente lançada enquanto a v1.3 está em validação. Veja [regras de negócio e limitações](docs/ADVANCED_CX_V1.3.md).
+Os resultados **não são FCR, churn nem recontato real de clientes**; o gerador reutiliza IDs por construção. A demo no Render continua com **dados sintéticos, sem PostgreSQL da máquina do usuário e sem CSV Kaggle**. A beta v1.3 foi verificada no navegador e o GitHub Actions executou **96 testes aprovados** na suíte principal, incluindo testes com PostgreSQL 16. A [GitHub Release v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0) permanece a última versão oficialmente lançada. Veja [regras e limitações](docs/ADVANCED_CX_V1.3.md) e [evidências de aceite da beta](docs/RELEASE_NOTES_V1.3.0_BETA.md).
 
 ## Demonstração pública segura (Render)
 
