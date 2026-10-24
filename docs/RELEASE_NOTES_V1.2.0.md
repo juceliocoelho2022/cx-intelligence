@@ -45,6 +45,22 @@ https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40085653843
 
 O log do job Python 3.12 registrou **74 testes aprovados**, incluindo testes reais de banco. As operações SQL negativas que geram mensagens `ERROR` nos logs do servidor são parte dos testes esperados de proteção do banco.
 
+## Evidência adicional — histórico v1.1 validado localmente (24/10/2026)
+
+O usuário confirmou via PowerShell e `psql` no PostgreSQL da aplicação:
+
+| Verificação | Resultado observado |
+| --- | --- |
+| `cx_tickets`, total de tickets do dataset original | **4.000** |
+| `cx_ticket_events`, eventos registrados | **12** |
+| Tickets iniciais com eventos registrados | **T000001 a T000005 (5/5)** |
+| `python -m src.database` reexecutado | **4.000 de entrada; 0 novos/alterados** |
+| `python -m src.ticket_events demo` reexecutado | **0 tickets semeados; 0 eventos adicionados** |
+
+Distribuição demonstrativa registrada: T000001 (OPEN → IN_PROGRESS → RESOLVED), T000002 (OPEN → IN_PROGRESS), T000003 (OPEN → IN_PROGRESS → RESOLVED), T000004 (OPEN → IN_PROGRESS) e T000005 (OPEN → IN_PROGRESS). **Os horários são fictícios**, não evidência de estados operacionais observados.
+
+Esta evidência confirma a persistência e a idempotência do cenário de demonstração no banco local. A proteção contra UPDATE/DELETE, a chave estrangeira e a consulta histórica também passaram na suíte com PostgreSQL real no GitHub Actions. Continua pendente a validação visual das abas no navegador.
+
 ## Escopo e limitações
 
 - Kaggle alvo: https://www.kaggle.com/datasets/suraj520/customer-support-ticket-dataset
@@ -62,7 +78,8 @@ O log do job Python 3.12 registrou **74 testes aprovados**, incluindo testes rea
 - [x] Executar a suíte local de 70 testes antes da ampliação de cobertura.
 - [x] Rodar testes de integração PostgreSQL no CI nas três versões de Python (execução acima).
 - [ ] Confirmar no navegador a nova aba **Kaggle externo**, métricas e visualizações.
-- [ ] Executar localmente `python -m src.ticket_events init`, `demo` e `demo` novamente; conferir a aba **Histórico de tickets**.
+- [x] Executar localmente `python -m src.ticket_events init`, `demo` e `demo` novamente; confirmar 12 eventos preexistentes nos cinco tickets e idempotência da demo.
+- [ ] Conferir visualmente a aba **Histórico de tickets**.
 - [ ] Revalidar último commit da branch principal após ajustes de CI e documentação.
 - [ ] Se desejado, criar a tag e a GitHub Release pelo próprio GitHub após o aceite.
 
