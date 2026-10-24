@@ -14,6 +14,7 @@ import os
 from uuid import UUID, uuid4
 
 from psycopg import connect
+from psycopg.conninfo import conninfo_to_dict
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
@@ -76,8 +77,18 @@ def _validate_principal(principal: PrivatePrincipal):
 
 def _dsn(value):
     dsn = value if value is not None else os.getenv("CX_PRIVATE_PLAN_DATABASE_URL")
-    if not isinstance(dsn, str) or not dsn.startswith(("postgresql://", "postgres://")):
+    if not isinstance(dsn, str) or not dsn.strip():
         raise PrivatePlanError("Banco privado não configurado")
+    try:
+        settings = conninfo_to_dict(dsn)
+    except Exception as exc:
+        raise PrivatePlanError("Configuração do banco privado inválida") from exc
+    if not settings.get("dbname"):
+        raise PrivatePlanError("Banco privado sem nome de base")
+    host = settings.get("host", "")
+    # SSL certificate verification is mandatory for any remote DB.
+    if host not in ("", "localhost", "127.0.0.1", "::1") and settings.get("sslmode") != "verify-full":
+        raise PrivatePlanError("Banco remoto exige sslmode=verify-full")
     return dsn
 
 
@@ -96,7 +107,10 @@ def _validated_actions(actions):
         raise PrivatePlanError("Ações não podem ser serializadas") from exc
     if len(data) > 200_000:
         raise PrivatePlanError("Limite de 200 KB por plano excedido")
-    validated = load_plan_actions(data)
+    try:
+        validated = load_plan_actions(data)
+    except ValueError as exc:
+        raise PrivatePlanError("Ações inválidas: " + str(exc)) from exc
     return validated, {"schema_version": "1.5.0",
                        "source": "synthetic_primary_only",
                        "actions": validated}
