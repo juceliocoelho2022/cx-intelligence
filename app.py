@@ -15,6 +15,11 @@ from src.advanced_cx import weekly_cx_trends, segment_benchmarks, observed_repea
 from src.reports import build_report, render_markdown
 from src.bi_reports import render_bi_markdown, render_bi_html
 from src.performance_v16 import risk_snapshot, nlp_model_comparison, bi_snapshot
+from src.private_plans import (
+    private_storage_enabled, principal_from_claims, PrivatePlanError,
+    PlanConflict, save_private_plan, load_private_plan, list_private_plans,
+)
+from psycopg import Error as PostgresError
 from src.cx_goals import (METRICS as GOAL_METRICS, ROLES as GOAL_ROLES,
     TRANSITIONS as GOAL_TRANSITIONS, evaluate_goals, create_action,
     change_action_status, edit_action, load_plan_actions, report_payload,
@@ -418,9 +423,125 @@ with tab_bi:
     with st.expander("Ver prévia e limitações metodológicas", expanded=False):
         st.markdown(bi_md)
 
+def private_plan_principal():
+    """Identity is verified by Streamlit's OIDC cookie; never by a UI field."""
+    if not private_storage_enabled():
+        return None
+    if not st.user.is_logged_in:
+        # On logout (or user switch) there must be no previous owner's plan.
+        if st.session_state.pop("cx_private_active_owner", None) is not None:
+            for key in ("v15_actions", "cx_private_plan_id",
+                        "cx_private_plan_revision", "cx_private_plan_name"):
+                st.session_state.pop(key, None)
+        return None
+    try:
+        principal = principal_from_claims(
+            dict(st.user), issuer=os.getenv("CX_PLAN_OIDC_ISSUER", ""),
+            audience=os.getenv("CX_PLAN_OIDC_CLIENT_ID", ""),
+        )
+    except PrivatePlanError:
+        st.error("Identidade OIDC inválida ou expirada; faça login novamente.")
+        return None
+    previous_owner = st.session_state.get("cx_private_active_owner")
+    if previous_owner != principal.owner_key:
+        # Sessions must never carry a previously logged-in user's action list.
+        if previous_owner is not None:
+            st.session_state.pop("v15_actions", None)
+        for key in ("cx_private_plan_id", "cx_private_plan_revision",
+                    "cx_private_plan_name"):
+            st.session_state.pop(key, None)
+        st.session_state["cx_private_active_owner"] = principal.owner_key
+    return principal
+
+
+def render_private_plans_panel(principal):
+    """Private, explicit persistence. No automatic writes or shared action cache."""
+    if not private_storage_enabled():
+        return
+    st.markdown("#### 🔐 Meus planos privados (recurso opcional)")
+    st.caption("Acesso via OIDC e PostgreSQL segregado. Apenas ações simuladas são "
+               "persistidas, por escolha explícita; metas permanecem recalculadas.")
+    if not st.user.is_logged_in or principal is None:
+        st.info("Use um provedor OIDC configurado em ambiente privado para salvar planos. "
+                "Esta opção está desativada na demonstração pública.")
+        if st.button("Entrar na área privada", key="cx_private_login"):
+            st.login()
+        return
+    if st.button("Sair da conta privada", key="cx_private_logout"):
+        for key in ("cx_private_active_owner", "v15_actions",
+                    "cx_private_plan_id", "cx_private_plan_revision",
+                    "cx_private_plan_name"):
+            st.session_state.pop(key, None)
+        st.logout()
+    with st.form("cx_private_save_form"):
+        proposed_name = st.text_input(
+            "Nome do plano privado (até 80 caracteres)",
+            value=st.session_state.get("cx_private_plan_name", "Meu plano de CX"),
+            max_chars=80, key="cx_private_name_field")
+        new_plan = st.checkbox(
+            "Salvar como novo plano (em vez de atualizar o atual)",
+            value=not bool(st.session_state.get("cx_private_plan_id")),
+            key="cx_private_save_new")
+        save_submitted = st.form_submit_button("Salvar plano na minha conta")
+    if save_submitted:
+        try:
+            active_id = None if new_plan else st.session_state.get("cx_private_plan_id")
+            revision = (st.session_state.get("cx_private_plan_revision")
+                        if active_id else None)
+            stored = save_private_plan(
+                principal, proposed_name, st.session_state.get("v15_actions", []),
+                plan_id=active_id, expected_revision=revision,
+            )
+            st.session_state["cx_private_plan_id"] = stored["id"]
+            st.session_state["cx_private_plan_revision"] = stored["revision"]
+            st.session_state["cx_private_plan_name"] = proposed_name.strip()
+            st.success("Plano sintético salvo exclusivamente no espaço privado da conta.")
+        except PlanConflict:
+            st.warning("Este plano mudou desde o último carregamento ou não pertence "
+                       "à conta. Carregue a versão mais recente antes de salvar.")
+        except PrivatePlanError as exc:
+            st.error(str(exc))
+        except PostgresError:
+            st.error("Banco privado indisponível ou sem a migração/permissões configuradas.")
+    with st.expander("📂 Recuperar planos da minha conta", expanded=False):
+        try:
+            records = list_private_plans(principal)
+            if not records:
+                st.info("Nenhum plano salvo nesta conta.")
+            else:
+                choices = {x["id"]: x for x in records}
+                picked = st.selectbox(
+                    "Escolha um plano salvo", list(choices),
+                    format_func=lambda pid: (choices[pid]["name"] + " · revisão "
+                                             + str(choices[pid]["revision"])),
+                    key="cx_private_pick_plan",
+                )
+                st.caption("Carregar um plano substitui as ações locais desta sessão. "
+                           "Exporte o JSON atual antes de prosseguir.")
+                if st.button("Carregar plano da minha conta", key="cx_private_load"):
+                    try:
+                        data = load_private_plan(principal, picked)
+                        st.session_state["v15_actions"] = data["actions"]
+                        st.session_state["cx_private_plan_id"] = data["id"]
+                        st.session_state["cx_private_plan_revision"] = data["revision"]
+                        st.session_state["cx_private_plan_name"] = data["name"]
+                        st.success("Plano privado restaurado nesta sessão. "
+                                   "Indicadores serão recalculados pelos filtros atuais.")
+                        st.rerun(scope="fragment")
+                    except PrivatePlanError as exc:
+                        st.error(str(exc))
+                    except PostgresError:
+                        st.error("Não foi possível consultar o armazenamento privado.")
+        except PrivatePlanError as exc:
+            st.error(str(exc))
+        except PostgresError:
+            st.error("Não foi possível listar os planos privados; confira o banco e permissões.")
+
+
 @st.fragment
 def render_goals_tab():
     """Only this tab reruns when creating or updating synthetic actions."""
+    private_identity = private_plan_principal()
     st.subheader("Metas de CX e Plano de Ação — v1.5.0")
     st.caption("Demonstração com dados 100% sintéticos. Metas configuráveis são propostas ilustrativas; nenhuma ação é executada por uma equipe real.")
     st.info("As ações ficam **somente nesta sessão de navegador**. Não há cadastro, banco de planos, login, agendamento de lembretes ou sincronização entre usuários. Exporte JSON ou Markdown para registrar um exemplo.")
@@ -631,9 +752,10 @@ def render_goals_tab():
         st.download_button("⬇ Exportar plano (.md)", export_plan_markdown(goal_payload).encode("utf-8"),
                            "cx_metas_v15_sintetico.md", "text/markdown",
                            key="v15_export_md")
-    st.caption("Exportar NÃO salva no servidor. Um JSON de ações sintéticas v1.5 pode ser "
-               "restaurado manualmente e substitui o plano da sessão. Mudanças de filtro alteram "
-               "a avaliação atual, mas não os recortes originais das ações nem seus eventos.")
+    st.caption("Exportar não salva no servidor. O armazenamento privado é opcional e "
+               "exige login OIDC em uma instalação separada; mudanças de filtro alteram "
+               "as metas atuais, mas não o recorte original das ações.")
+    render_private_plans_panel(private_identity)
 
 with tab_goals:
     render_goals_tab()
