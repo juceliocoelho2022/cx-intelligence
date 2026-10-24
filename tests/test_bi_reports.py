@@ -64,7 +64,10 @@ def test_incomplete_earlier_history_has_no_comparison():
 
 
 def test_no_recent_tickets_is_explicitly_unavailable():
-    r = compare_periods(history(), "2026-08-22", 7, topics=["Conta"], min_sample=1)
+    df = history()
+    df.loc[2, "topic"] = "Conta"
+    df.loc[5, "topic"] = "Pix"
+    r = compare_periods(df, "2026-08-28", 7, topics=["Conta"], min_sample=1)
     assert r["status"] == "empty_current"
     assert r["current"]["tickets"] == 0
     assert all(m["delta"] is None for m in r["metrics"])
