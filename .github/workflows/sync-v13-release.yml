@@ -1,0 +1,40 @@
+name: One-time v1.3.0 release notes correction
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/sync-v13-release.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-release-description:
+    if: github.repository == 'juceliocoelho2022/cx-intelligence' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Ensure tag points to the already tested code
+        run: |
+          test "$(git rev-list -n 1 v1.3.0)" = '1586b8e29f48625cdf987335fb6679d66f38b85d'
+      - name: Edit only the GitHub Release title and description
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release edit v1.3.0 \
+            --title 'CX Intelligence v1.3.0 — Advanced Customer Experience Analytics' \
+            --notes-file docs/GITHUB_RELEASE_DESCRIPTION_V1.3.0.md
+      - name: Verify new published description
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view v1.3.0 --json body --jq '.body' > /tmp/cx-release-description.txt
+          grep -q 'Release oficial publicada' /tmp/cx-release-description.txt
+          grep -q '98 testes pytest aprovados' /tmp/cx-release-description.txt
+          if grep -q 'não devem ser anunciadas' /tmp/cx-release-description.txt; then exit 1; fi
+          echo 'Release description updated and verified.'
