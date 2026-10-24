@@ -5,13 +5,13 @@
 > **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.4.0--stable-brightgreen)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.5.0--stable-brightgreen)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
 ### 🌐 Acesse o projeto
 
-**[Abrir demonstração online — CX Intelligence v1.4.0](https://cx-intelligence-demo.onrender.com/)** · **[Release oficial v1.4.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.4.0)** · **[Guia de execução local completa](docs/KAGGLE_INTEGRATION.md)**
+**[Abrir demonstração online — CX Intelligence v1.5.0](https://cx-intelligence-demo.onrender.com/)** · **[Release oficial v1.5.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.5.0)** · **[Guia de execução local completa](docs/KAGGLE_INTEGRATION.md)**
 
 A versão pública foi verificada em 24/10/2026: o Streamlit iniciou, respondeu `ok` no endpoint de saúde e exibiu o dashboard com **4.000 tickets exclusivamente sintéticos**. O deploy público **não contém o CSV original do Kaggle nem acessa o PostgreSQL local**. Os módulos PostgreSQL e Kaggle estão disponíveis para instalação local, com dados e limitações explicitados na documentação. O serviço gratuito pode demorar a abrir após inatividade.
 
@@ -41,7 +41,8 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Notas da Release oficial v1.3.0](docs/RELEASE_NOTES_V1.3.0.md) | 98 testes na suíte CI, Chrome móvel 390 px, melhorias de CX e checklist de publicação |
 | [Histórico da beta v1.3](docs/RELEASE_NOTES_V1.3.0_BETA.md) | Testes e melhorias que antecederam o preparo da release |
 | [BI e relatórios avançados v1.4](docs/BI_V1.4.md) | Comparação de períodos equivalentes, métricas e exportação executiva Markdown/HTML |
-| [Metas de CX e planos de ação v1.5 beta](docs/GOALS_V1.5.md) | Metas configuráveis, monitoramento descritivo, ações fictícias por sessão e exportação JSON/Markdown |
+| [Metas de CX e planos de ação v1.5.0](docs/GOALS_V1.5.md) | Metas configuráveis, ações fictícias por sessão, JSON/Markdown, revisão de texto e recuperação de planos |
+| [Release oficial v1.5.0](docs/RELEASE_NOTES_V1.5.0.md) | Escopo, compatibilidade de planos beta, evidências de testes e ressalvas |
 | [Release oficial v1.4.0](docs/RELEASE_NOTES_V1.4.0.md) | BI avançado, 120 testes e downloads públicos HTML/Markdown verificados |
 | [Histórico da beta v1.4](docs/RELEASE_NOTES_V1.4.0_BETA.md) | Registro dos testes e incidentes corrigidos antes da publicação |
 
@@ -160,7 +161,7 @@ Nova aba **📐 Analytics v1.3** exclusivamente sobre os tickets sintéticos pri
 
 Os resultados **não são FCR, churn nem recontato real de clientes**; o gerador reutiliza IDs por construção. A demo no Render continua com **dados sintéticos, sem PostgreSQL da máquina do usuário e sem CSV Kaggle**. O código da v1.3.0 passou **98 testes da suíte principal no CI (Python 3.12, incluindo PostgreSQL)**, além de smoke test com Chrome no viewport móvel **390 × 844 px**, validando controles e layout. A **[GitHub Release v1.3.0 foi publicada em 24/10/2026](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0)** com a tag apontando para o commit `1586b8e` aprovado no CI. A [v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0) continua disponível no histórico de versões. Consulte [regras e limites](docs/ADVANCED_CX_V1.3.md) e [notas de lançamento v1.3.0](docs/RELEASE_NOTES_V1.3.0.md).
 
-## Em desenvolvimento — v1.5 beta: Metas e Planos de Ação
+## Metas e Planos de Ação — v1.5.0 (lançamento oficial)
 
 A nova aba **🎯 Metas v1.5** demonstra um ciclo de acompanhamento CX a partir dos **tickets 100% sintéticos do conjunto principal**, sem dados de clientes reais e sem misturar o CSV Kaggle.
 
@@ -172,7 +173,7 @@ A nova aba **🎯 Metas v1.5** demonstra um ciclo de acompanhamento CX a partir 
 - **Correção do título/hipótese** de uma ação, preservando ID, recorte e estados; revisões textuais são registradas separadamente.
 - CI com **179 testes Python aprovados** e Chrome mobile validando criação, edição, transição, downloads JSON/Markdown e reimportação de um export anterior ([evidência](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40123393537)).
 
-**v1.5 é uma beta, não uma Release oficial.** A versão estável permanece a [v1.4.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.4.0). Regras e testes em [Metas v1.5](docs/GOALS_V1.5.md).
+**[v1.5.0 é a nova Release oficial](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.5.0)**. Os arquivos JSON da beta (`1.5.0-beta`) continuam aceitos para restauração; novos arquivos usam `schema_version: 1.5.0`. O suporte é estritamente sintético, com ações restritas à sessão. Consulte [notas de lançamento](docs/RELEASE_NOTES_V1.5.0.md), [regras v1.5](docs/GOALS_V1.5.md) e [histórico de aceite](docs/RELEASE_NOTES_V1.5.0_BETA.md).
 
 ## BI comparativo e relatórios executivos — v1.4.0 (lançamento oficial)
 
