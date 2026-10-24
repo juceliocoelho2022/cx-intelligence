@@ -32,7 +32,13 @@ def check_mobile_dashboard():
             expect(page.get_by_text("CX Intelligence", exact=True)).to_be_visible()
             expect(page.get_by_text("4.000", exact=True).first).to_be_visible()
             assert page.evaluate("window.innerWidth") == 390, "Viewport not 390 px"
-            expect(page.get_by_test_id("stSidebar")).to_have_attribute("data-collapsed", "true")
+            sidebar = page.get_by_test_id("stSidebar")
+            # Streamlit 1.65 exposes aria-expanded; later versions may expose
+            # data-collapsed instead. Both mean the narrow viewport starts closed.
+            assert (sidebar.get_attribute("aria-expanded") == "false"
+                    or sidebar.get_attribute("data-collapsed") == "true"), (
+                "Mobile sidebar should start collapsed"
+            )
             tab = page.get_by_role("tab", name=re.compile(r"Analytics v1\.3"))
             tab.scroll_into_view_if_needed()
             tab.click()
