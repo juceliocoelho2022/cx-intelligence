@@ -9,6 +9,12 @@
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
+### 🌐 Acesse o projeto
+
+**[Abrir demonstração online — CX Intelligence v1.2](https://cx-intelligence-demo.onrender.com/)** · **[GitHub Release v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0)** · **[Guia de execução local completa](docs/KAGGLE_INTEGRATION.md)**
+
+A versão pública foi verificada em 24/10/2026: o Streamlit iniciou, respondeu `ok` no endpoint de saúde e exibiu o dashboard com **4.000 tickets exclusivamente sintéticos**. O deploy público **não contém o CSV original do Kaggle nem acessa o PostgreSQL local**. Os módulos PostgreSQL e Kaggle estão disponíveis para instalação local, com dados e limitações explicitados na documentação. O serviço gratuito pode demorar a abrir após inatividade.
+
 Plataforma demonstrativa de Customer Experience Analytics aplicada ao setor financeiro, desenvolvida como **projeto independente de portfólio**. O dataset principal utiliza dados inteiramente sintéticos; a integração opcional Kaggle preserva fonte externa isolada e importa somente metadados operacionais. Não há vínculo oficial com o Banco Inter.
 
 ## Visão executiva
@@ -90,7 +96,7 @@ A aba **Relatório executivo** agora também exporta um **manifesto JSON** com h
 
 ## Release de portfólio — v1.0 candidata
 
-A versão candidata inclui teste de integração sintética (pipeline → relatório → manifesto), roteiro de demonstração e pipeline de CI para Python 3.10, 3.12 e 3.14. **A aprovação da release depende de verificar Actions, execução visual e exportações na revisão publicada.** Não há deploy público confirmado.
+A versão candidata incluiu teste de integração sintética (pipeline → relatório → manifesto), roteiro de demonstração e CI para Python 3.10, 3.12 e 3.14. A publicação atual está na **v1.2.0**; os testes de integração PostgreSQL e o deploy público com dados sintéticos foram validados posteriormente.
 
 Veja [roteiro e critérios de aceite](docs/PORTFOLIO_DEMO.md).
 
@@ -130,15 +136,15 @@ A aba **Kaggle externo** mostra contagens e taxas usando denominadores explícit
 - `tests/test_postgres_integration.py` exige explicitamente `TEST_DATABASE_URL` com banco de nome `cx_test`. Sem essa variável, os quatro testes de integração são ignorados **localmente**, preservando o banco `cx_intelligence`.
 - Importação local do Kaggle: **8.469 tickets**, **2.769 avaliados**, **39,3% CSAT positivo entre avaliados**, **32,7% status Closed**; reprocessamento sem alteração do CSV: **0 registros afetados**.
 - **Verificação visual local concluída:** aba Kaggle externo com KPIs, gráficos de tipo/canal e tabela prioridade/status; aba Histórico de tickets com 12 eventos e gráfico de status. As capturas foram fornecidas em 24/10/2026.
-- **Atenção:** aceite local e CI aprovados não significam publicação de tag/GitHub Release nem deploy público. Redistribuição do dataset externo depende de revisão da licença no Kaggle.
+- **Tag e release oficial v1.2.0 publicadas no GitHub**. A tag aponta para o commit validado `dee1676`. A demonstração pública no Render está `Live`, usa somente dados sintéticos e passou no smoke test de navegador em 24/10/2026. Redistribuição do CSV externo depende de revisão da licença do Kaggle.
 
 GitHub Actions comprovado: [workflow com testes PostgreSQL reais](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40085653843). Veja [notas do aceite v1.2](docs/RELEASE_NOTES_V1.2.0.md).
 
 ## Demonstração pública segura (Render)
 
-Serviço gratuito de demonstração criado em 24/10/2026: https://cx-intelligence-demo.onrender.com. O serviço usa `CX_PUBLIC_DEMO=true` e `CX_DATA_SOURCE=csv`, gerando dados **100% sintéticos** no servidor; **não hospeda o CSV Kaggle ou a base local PostgreSQL**.
+**[Abrir o CX Intelligence v1.2](https://cx-intelligence-demo.onrender.com/)** — serviço gratuito criado em 24/10/2026 e confirmado `Live`. A aplicação usa `CX_PUBLIC_DEMO=true` e `CX_DATA_SOURCE=csv`, gerando **4.000 tickets sintéticos** no servidor. O smoke test verificou título, 10 abas, aviso de ambiente demonstrativo e métrica de tickets; o endpoint `/_stcore/health` respondeu `ok`.
 
-A URL só deve ser anunciada como disponível quando o deploy no Render estiver em estado `Live` e a interface tiver sido verificada. Consulte [instruções e limitações da demonstração](docs/PUBLIC_DEMO.md). A criação de uma Git tag e GitHub Release v1.2.0 é independente do deploy e ainda não foi confirmada.
+A demonstração pública **não hospeda o CSV Kaggle nem acessa o PostgreSQL local**; esses recursos permanecem disponíveis no ambiente de desenvolvimento. Veja [limitações da demo](docs/PUBLIC_DEMO.md) e [GitHub Release oficial v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0).
 
 ## Autor
 [Jucelio Coelho](https://github.com/juceliocoelho2022) · Projeto educacional e técnico. Sem dados de clientes reais. Licença de reutilização ainda não definida.
