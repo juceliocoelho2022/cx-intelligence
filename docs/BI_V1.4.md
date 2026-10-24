@@ -1,6 +1,6 @@
-# CX Intelligence v1.4 (beta) — Relatórios executivos avançados e BI
+# CX Intelligence v1.4.0 — Relatórios executivos avançados e BI
 
-**Data:** 24/10/2026 · **Status:** desenvolvimento; a última Release oficial permanece [v1.3.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0).
+**Data:** 24/10/2026 · **Status:** [GitHub Release v1.4.0 publicada oficialmente](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.4.0). CI com quatro jobs verdes, Render Live e download público Markdown/HTML comprovado.
 
 ## Escopo da entrega
 
@@ -57,7 +57,7 @@ $env:CX_DATA_SOURCE = "postgres"  # opcional, não necessário na demo
 streamlit run app.py
 ```
 
-No celular, deslize a faixa de abas até **📑 BI v1.4**. Testes de CI e inspeção de interface deverão ser confirmados antes de marcar a v1.4 como Release estável.
+No celular, deslize a faixa de abas até **📑 BI v1.4**. O CI da versão v1.4.0 confirmou Python 3.10, 3.12 e 3.14, mais testes Chrome mobile. A validação pública de exportação baixou e inspecionou arquivos Markdown e HTML diretamente do Render ([evidência](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40117915523)).
 
 ## Limitações
 
