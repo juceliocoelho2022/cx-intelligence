@@ -5,7 +5,7 @@
 > **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.2--dev-orange)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.2--validated-brightgreen)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
@@ -94,7 +94,7 @@ A versão candidata inclui teste de integração sintética (pipeline → relat�
 
 Veja [roteiro e critérios de aceite](docs/PORTFOLIO_DEMO.md).
 
-## Histórico de tickets — v1.1 (em validação)
+## Histórico de tickets — v1.1 (aceite local concluído)
 
 O módulo opt-in `src/ticket_events.py` mantém um histórico **append-only** de transições simuladas de tickets, separado do snapshot `cx_tickets`. Ele suporta reabertura explícita, idempotência por chave de evento e consulta do estado em datas anteriores. A tabela histórica só será criada ao executar `init`; eventos de demonstração só serão inseridos ao executar `demo`.
 
@@ -106,9 +106,9 @@ $env:CX_DATA_SOURCE = 'postgres'
 streamlit run app.py
 ```
 
-Aba **Histórico de tickets**: linha do tempo dos eventos registrados e fotografia temporal. Os horários da demo foram **inventados**; a tabela atual de tickets não contém informação suficiente para reconstruir mudanças anteriores. O status antigo `resolved` não é sincronizado pela nova tabela. Consulte [documentação detalhada](docs/TICKET_HISTORY.md). Testes de banco/trigger e validação visual em PostgreSQL ainda são pendentes nesta versão de desenvolvimento.
+Aba **Histórico de tickets**: linha do tempo dos eventos registrados e fotografia temporal. Os horários da demo foram **inventados**; a tabela atual de tickets não contém informação suficiente para reconstruir mudanças anteriores. O status antigo `resolved` não é sincronizado pela nova tabela. Testes de banco/trigger no PostgreSQL 16 CI e verificação visual local de 12 eventos e do gráfico foram concluídos em 24/10/2026. Consulte [documentação detalhada](docs/TICKET_HISTORY.md).
 
-## Dataset externo Kaggle — v1.2 (em validação)
+## Dataset externo Kaggle — v1.2 (aceite local concluído)
 
 Integração opcional com o [Customer Support Ticket Dataset](https://www.kaggle.com/datasets/suraj520/customer-support-ticket-dataset). **O CSV é baixado manualmente pelo usuário**, preservado fora do Git e lido apenas por uma lista explícita de campos operacionais. Nomes, e-mails e textos livres não são armazenados. Dados externos permanecem em tabelas PostgreSQL separadas; não alteram os KPIs do dataset sintético nem os modelos existentes.
 
@@ -123,15 +123,16 @@ streamlit run app.py
 
 A aba **Kaggle externo** mostra contagens e taxas usando denominadores explícitos. A data de compra não é usada como data de atendimento, e a ausência de nota CSAT permanece nula. **Verifique a licença do dataset na fonte antes de republicá-lo.** Consulte [regras e limitações](docs/KAGGLE_INTEGRATION.md).
 
-## Verificação de qualidade — candidata v1.2
+## Verificação de qualidade — v1.2 validada localmente
 
 - **70 testes aprovados localmente** antes da inclusão dos testes com PostgreSQL real.
 - **74 testes aprovados no GitHub Actions** com Python 3.10/3.12/3.14 e serviço PostgreSQL 16 `cx_test` isolado (execução verificada em 24/10/2026).
 - `tests/test_postgres_integration.py` exige explicitamente `TEST_DATABASE_URL` com banco de nome `cx_test`. Sem essa variável, os quatro testes de integração são ignorados **localmente**, preservando o banco `cx_intelligence`.
 - Importação local do Kaggle: **8.469 tickets**, **2.769 avaliados**, **39,3% CSAT positivo entre avaliados**, **32,7% status Closed**; reprocessamento sem alteração do CSV: **0 registros afetados**.
-- A interface Streamlit ainda depende de **verificação visual local** das abas Kaggle externo e Histórico de tickets antes de declarar release final.
+- **Verificação visual local concluída:** aba Kaggle externo com KPIs, gráficos de tipo/canal e tabela prioridade/status; aba Histórico de tickets com 12 eventos e gráfico de status. As capturas foram fornecidas em 24/10/2026.
+- **Atenção:** aceite local e CI aprovados não significam publicação de tag/GitHub Release nem deploy público. Redistribuição do dataset externo depende de revisão da licença no Kaggle.
 
-GitHub Actions comprovado: [workflow com testes PostgreSQL reais](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40085653843). Veja [notas da candidata v1.2](docs/RELEASE_NOTES_V1.2.0.md).
+GitHub Actions comprovado: [workflow com testes PostgreSQL reais](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40085653843). Veja [notas do aceite v1.2](docs/RELEASE_NOTES_V1.2.0.md).
 
 ## Autor
 [Jucelio Coelho](https://github.com/juceliocoelho2022) · Projeto educacional e técnico. Sem dados de clientes reais. Licença de reutilização ainda não definida.
