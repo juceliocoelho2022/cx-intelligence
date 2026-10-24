@@ -20,7 +20,7 @@ A aba **🎯 Metas v1.5** transforma os indicadores descritivos da v1.4 em um *f
 - Testes automatizados no **Python 3.10, 3.12 e 3.14** com PostgreSQL 16 na suíte de CI, incluindo validações de metas e limites de amostra, eventos, edição e importação de JSON.
 - **Chrome mobile 390 × 844** executa criação de ação, transição de estado, revisão textual, exportação real de JSON/Markdown e restauração de um plano anterior.
 - Aceite manual do responsável: ação `A0001` restaurada no Streamlit, título corrigido e estado `Planejada → Em andamento`, com eventos em 24/10/2026 e dados exportados em JSON e Markdown. O histórico permaneceu intacto.
-- Para evidência detalhada de QA e resultados do Chrome: [Histórico de aceite v1.5 beta](docs/RELEASE_NOTES_V1.5.0_BETA.md) e [regras v1.5](docs/GOALS_V1.5.md).
+- Para evidência detalhada de QA e resultados do Chrome: [Histórico de aceite v1.5 beta](RELEASE_NOTES_V1.5.0_BETA.md) e [regras v1.5](GOALS_V1.5.md).
 - A implantação da v1.5 no Render deve ser comprovada como **Live** antes de considerar a distribuição pública concluída. Houve tentativas automatizadas diretas contra a URL pública que expiraram durante os longos *reruns* do Streamlit gratuito; o aceite funcional e dos arquivos é documentado no CI local e nos arquivos exportados manualmente.
 
 ## Privacidade e limites de interpretação
