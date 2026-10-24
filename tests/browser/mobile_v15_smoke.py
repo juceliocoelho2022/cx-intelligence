@@ -25,7 +25,7 @@ def check_v15_mobile():
             tab = page.get_by_role("tab", name="🎯 Metas v1.5")
             tab.scroll_into_view_if_needed()
             tab.click()
-            expect(page.get_by_text("Metas de CX e Plano de Ação — v1.5 (beta)")).to_be_visible(timeout=110000)
+            expect(page.get_by_text("Metas de CX e Plano de Ação — v1.5.0")).to_be_visible(timeout=110000)
             expect(page.get_by_text("Meta ilustrativa de CSAT (%)")).to_be_visible()
             expect(page.get_by_text("Plano de ação demonstrativo")).to_be_visible()
             expect(page.get_by_text("Nenhuma ação proposta ainda.")).to_be_visible()
@@ -54,6 +54,7 @@ def check_v15_mobile():
             content = json.loads(json_path.read_text(encoding="utf-8"))
             assert json_file.suggested_filename == "cx_metas_v15_sintetico.json"
             assert content["source"] == "synthetic_primary_only"
+            assert content["schema_version"] == "1.5.0"
             assert content["persistence"] == "session_only"
             assert content["actions"][0]["id"] == "A0001"
             assert content["actions"][0]["status"] == "Planejada"
