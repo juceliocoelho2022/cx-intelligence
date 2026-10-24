@@ -20,7 +20,8 @@ def check_bi_mobile():
         page.on("pageerror", lambda err: js_errors.append(str(err)))
         try:
             page.goto(BASE_URL, wait_until="domcontentloaded", timeout=90_000)
-            # Render Free instances may cold-start and generate 4,000 tickets on first visit.\n            expect(page.get_by_text("4.000", exact=True).first).to_be_visible(timeout=110_000)
+            # Render Free instances may cold-start and generate 4,000 tickets on first visit.
+            expect(page.get_by_text("4.000", exact=True).first).to_be_visible(timeout=110_000)
             assert page.evaluate("window.innerWidth") == 390
             tab = page.get_by_role("tab", name=re.compile(r"BI v1\.4"))
             tab.scroll_into_view_if_needed()
