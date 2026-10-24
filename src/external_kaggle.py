@@ -118,7 +118,7 @@ def import_kaggle_csv(path, dsn=None):
             cur.execute(SQL_PATH.read_text(encoding="utf-8"))
             affected = 0
             for record in prepared.itertuples(index=False, name=None):
-                cur.execute(UPSERT, tuple(None if pd.isna(v) else v for v in record))
+                cur.execute(UPSERT, tuple(None if pd.isna(v) else (v.item() if hasattr(v, 'item') else v) for v in record))
                 affected += cur.rowcount
             cur.execute("""INSERT INTO cx_external_import_runs
                         (source_id,dataset_sha256,input_rows,affected_rows)
