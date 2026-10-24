@@ -117,6 +117,22 @@ def load_event_history(dsn=None, limit=500):
                                FROM cx_ticket_events ORDER BY occurred_at DESC,event_key DESC LIMIT %s""",
                             (limit,)).fetchall()
 
+def load_ticket_status_as_of(ticket_id, as_of, dsn=None):
+    """Most recent recorded event for one ticket at an instant; None if unknown.
+
+    Missing history is never substituted with the legacy resolved snapshot.
+    """
+    timestamp = normalize_timestamp(as_of)
+    if not isinstance(ticket_id, str) or not 1 <= len(ticket_id) <= 20:
+        raise ValueError("ticket_id inválido")
+    with psycopg.connect(dsn or connection_string(), row_factory=dict_row) as conn:
+        return conn.execute("""SELECT ticket_id, status, occurred_at, event_key
+                               FROM cx_ticket_events
+                               WHERE ticket_id=%s AND occurred_at<=%s
+                               ORDER BY occurred_at DESC, event_key DESC LIMIT 1""",
+                            (ticket_id, timestamp)).fetchone()
+
+
 def load_status_as_of(as_of, dsn=None):
     """Only tickets with recorded events; never reconstruct missing history."""
     timestamp = normalize_timestamp(as_of)
