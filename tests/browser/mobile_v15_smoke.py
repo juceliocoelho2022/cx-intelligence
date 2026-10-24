@@ -85,9 +85,43 @@ def check_v15_mobile():
             assert [event["status"] for event in updated_payload["actions"][0]["events"]] == [
                 "Planejada", "Em andamento"
             ]
+            # Edit the restored action's description without losing its identity
+            # or its separate status event history.
+            page.get_by_text("✏️ Corrigir título ou hipótese de uma ação", exact=True).click()
+            page.get_by_role("textbox", name="Título corrigido (até 120 caracteres)").fill(
+                "Investigar dificuldades na jornada Pix")
+            page.get_by_role("button", name="Salvar correção da ação").click()
+            with page.expect_download(timeout=45000) as edited_event:
+                page.get_by_role("button", name="Exportar plano (.json)").click()
+            edited_file = edited_event.value
+            edited_path = Path("artifacts/v15_edited_plan.json")
+            edited_file.save_as(edited_path)
+            edited_plan = json.loads(edited_path.read_text(encoding="utf-8"))
+            assert edited_plan["actions"][0]["id"] == "A0001"
+            assert edited_plan["actions"][0]["title"] == "Investigar dificuldades na jornada Pix"
+            assert edited_plan["actions"][0]["status"] == "Em andamento"
+            assert [e["status"] for e in edited_plan["actions"][0]["events"]] == [
+                "Planejada", "Em andamento"]
+            assert edited_plan["actions"][0]["edits"][0]["old_title"] == (
+                "Investigar fricção no atendimento Pix")
+            # Import an earlier export to demonstrate session-only recovery.
+            page.get_by_text("📥 Restaurar plano de ação exportado (.json)", exact=True).click()
+            page.get_by_label(
+                "Selecionar exportação JSON v1.5 (máximo 200 KB)"
+            ).set_input_files(str(json_path))
+            page.get_by_role("button", name="Restaurar ações nesta sessão").click()
+            expect(page.get_by_text("1 ação(ões) restaurada(s) na sessão.", exact=False)).to_be_visible(timeout=45000)
+            with page.expect_download(timeout=45000) as restored_event:
+                page.get_by_role("button", name="Exportar plano (.json)").click()
+            restored_path = Path("artifacts/v15_restored_plan.json")
+            restored_event.value.save_as(restored_path)
+            restored_plan = json.loads(restored_path.read_text(encoding="utf-8"))
+            assert restored_plan["actions"][0]["id"] == "A0001"
+            assert restored_plan["actions"][0]["status"] == "Planejada"
+            assert restored_plan["actions"][0]["title"] == "Investigar fricção no atendimento Pix"
             assert page.locator('[data-testid="stException"]').count() == 0
             assert not errors, "JavaScript page errors: " + str(errors)
-            print("PASS: v1.5 mobile 390x844; goals, action creation, session state transition and verified JSON/Markdown downloads.")
+            print("PASS: v1.5 mobile 390x844; action creation, state changes, edit revisions, import recovery and real JSON/Markdown downloads.")
         except Exception:
             page.screenshot(path="artifacts/cx_v15_mobile_failure.png",
                             full_page=False)
