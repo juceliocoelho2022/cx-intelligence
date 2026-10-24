@@ -13,7 +13,8 @@ from src.anomalies import detect_volume_anomalies, weekly_volumes
 from src.insights import segment_insights
 from src.advanced_cx import weekly_cx_trends, segment_benchmarks, observed_repeat_30d
 from src.reports import build_report, render_markdown
-from src.bi_reports import compare_periods, render_bi_markdown, render_bi_html
+from src.bi_reports import render_bi_markdown, render_bi_html
+from src.performance_v16 import risk_snapshot, nlp_model_comparison, bi_snapshot
 from src.cx_goals import (METRICS as GOAL_METRICS, ROLES as GOAL_ROLES,
     TRANSITIONS as GOAL_TRANSITIONS, evaluate_goals, create_action,
     change_action_status, edit_action, load_plan_actions, report_payload,
@@ -125,7 +126,7 @@ with tab_voice:
 with tab_risk:
     st.info("Experimento supervisionado: o alvo de reincidência é gerado artificialmente. Não utilizar scores para decisões sobre pessoas reais.")
     with st.spinner("Treinando baseline temporal..."):
-        _,score,pred=train_and_evaluate(df)
+        score,pred=risk_snapshot(df)
     c1,c2,c3=st.columns(3)
     c1.metric("ROC-AUC",str(score["roc_auc"]) if score["roc_auc"] is not None else "N/A")
     c2.metric("Average Precision",str(score["average_precision"]))
@@ -158,7 +159,7 @@ with tab_nlp:
             chart(px.bar(prob_df, x="sentimento", y="probabilidade", title="Distribuição de probabilidades do protótipo", color_discrete_sequence=[COLORS["orange"]]))
         except ValueError as exc:
             st.error(str(exc))
-    comparison, mistakes = compare_models()
+    comparison, mistakes = nlp_model_comparison()
     st.markdown("#### Comparativo de algoritmos — mesmo conjunto de teste")
     st.dataframe(comparison.sort_values("f1_macro", ascending=False), width="stretch", hide_index=True)
     with st.expander("Investigar erros de classificação"):
@@ -358,10 +359,10 @@ with tab_bi:
     # Sidebar date control chooses the reference END day. BI window length is
     # independent of the sidebar start day, preserving equal calendar periods.
     bi_end_date = dates[1] if len(dates) == 2 else subset.date.max().date()
-    bi_comparison = compare_periods(
+    bi_comparison = bi_snapshot(
         df, end_date=bi_end_date, window_days=bi_days,
         dimension="channel" if bi_dimension_name == "Canal" else "topic",
-        topics=topics, channels=channels, min_sample=bi_minimum,
+        topics=tuple(topics), channels=tuple(channels), min_sample=bi_minimum,
     )
     current_period = bi_comparison["period_current"]
     previous_period = bi_comparison["period_previous"]
@@ -411,7 +412,9 @@ with tab_bi:
     with st.expander("Ver prévia e limitações metodológicas", expanded=False):
         st.markdown(bi_md)
 
-with tab_goals:
+@st.fragment
+def render_goals_tab():
+    """Only this tab reruns when creating or updating synthetic actions."""
     st.subheader("Metas de CX e Plano de Ação — v1.5.0")
     st.caption("Demonstração com dados 100% sintéticos. Metas configuráveis são propostas ilustrativas; nenhuma ação é executada por uma equipe real.")
     st.info("As ações ficam **somente nesta sessão de navegador**. Não há cadastro, banco de planos, login, agendamento de lembretes ou sincronização entre usuários. Exporte JSON ou Markdown para registrar um exemplo.")
@@ -442,9 +445,10 @@ with tab_goals:
                                      value=10.0, step=0.5,
                                      key="v15_target_hours")
     goal_end_date = dates[1] if len(dates) == 2 else subset.date.max().date()
-    goal_period_report = compare_periods(
+    goal_period_report = bi_snapshot(
         df, end_date=goal_end_date, window_days=goal_days,
-        topics=topics, channels=channels, min_sample=goal_minimum,
+        dimension="channel", topics=tuple(topics), channels=tuple(channels),
+        min_sample=goal_minimum,
     )
     period_now = goal_period_report["period_current"]
     # Date-range coverage is a necessary condition, not a certification of
@@ -578,7 +582,7 @@ with tab_goals:
                         changed_on=datetime.now().date())
                     st.success("Texto corrigido na sessão. O ID e o histórico de estados foram preservados; "
                                "a revisão fica registrada na exportação JSON.")
-                    st.rerun()
+                    st.rerun(scope="fragment")
                 except ValueError as exc:
                     st.error(f"Correção rejeitada: {exc}")
         open_actions = [a for a in all_actions if GOAL_TRANSITIONS[a["status"]]]
@@ -601,7 +605,7 @@ with tab_goals:
                         all_actions, action_selected, next_status,
                         datetime.now().date())
                     st.success("Estado atualizado apenas nesta sessão. Isso não representa execução real nem ganho comprovado.")
-                    st.rerun()
+                    st.rerun(scope="fragment")
                 except ValueError as exc:
                     st.error(str(exc))
         with st.expander("Hipóteses e histórico das ações"):
@@ -624,6 +628,9 @@ with tab_goals:
     st.caption("Exportar NÃO salva no servidor. Um JSON de ações sintéticas v1.5 pode ser "
                "restaurado manualmente e substitui o plano da sessão. Mudanças de filtro alteram "
                "a avaliação atual, mas não os recortes originais das ações nem seus eventos.")
+
+with tab_goals:
+    render_goals_tab()
 
 with tab_events:
     st.subheader("Histórico imutável de eventos dos tickets")
