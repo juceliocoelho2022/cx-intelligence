@@ -75,7 +75,7 @@ st.sidebar.caption("🔒 KPIs principais: sintéticos; Kaggle em módulo isolado
 if PUBLIC_DEMO:
     st.sidebar.info("Demonstração pública: somente dados sintéticos gerados pelo projeto. Sem banco local, CSV Kaggle ou credenciais.")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
-st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.3 (beta)</div>
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.3.0</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
 if subset.empty:
