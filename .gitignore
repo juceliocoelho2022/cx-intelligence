@@ -25,3 +25,11 @@ data/*.sqlite*
 
 # Streamlit secrets
 .streamlit/secrets.toml
+
+# External datasets downloaded locally (may contain customer names/emails)
+data/raw/
+data/external/
+data/**/*.csv
+data/**/*.zip
+*.kaggle.json
+kaggle.json
