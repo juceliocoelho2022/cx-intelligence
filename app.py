@@ -550,6 +550,10 @@ with tab_goals:
             for a in all_actions
         ])
         st.dataframe(actions_table, hide_index=True, width="stretch")
+        revised_actions = [a for a in all_actions if a.get("edits")]
+        if revised_actions:
+            st.caption("Revisões de texto registradas: " + "; ".join(
+                f'{a["id"]}: {a["title"]}' for a in revised_actions))
         with st.expander("✏️ Corrigir título ou hipótese de uma ação", expanded=False):
             edit_id = st.selectbox(
                 "Escolha a ação para corrigir", [a["id"] for a in all_actions],
