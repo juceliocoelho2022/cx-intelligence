@@ -190,8 +190,7 @@ def export_plan_markdown(payload):
     def cell(v):
         return (str(v).replace("&", "&amp;").replace("<", "&lt;")
                 .replace(">", "&gt;").replace("\\", "\\\\")
-                .replace("|", "\\|").replace("
-", " "))
+                .replace("|", "\\|").replace("\n", " "))
     p = payload["period"]
     lines = [
         "# CX Intelligence — Metas e Plano de Ação | v1.5 beta",
