@@ -50,6 +50,16 @@ O arquivo `/static/js/Metric.DMz1h4un.js` pôde ser obtido da URL pública em um
 
 **Mitigação adotada:** `requirements.txt` passou a fixar `streamlit==1.66.1`, a versão vista nos logs do Render Live, para manter o conjunto de arquivos JavaScript consistente entre builds reproduzidos. A versão foi fixada para previsibilidade, **não como correção comprovada do erro transitório**. São recomendáveis a verificação dos downloads no Render após um deploy estável e o acompanhamento de novos erros.
 
+## Correção de deploy e compatibilidade — 24/10/2026
+
+Após inspeção dos logs do Render, foi encontrada uma regressão temporária na instalação do Streamlit: uma edição do `requirements.txt` deixou `streamlit` em uma linha de comentário, causando `No module named streamlit` no startup do serviço. O requisito foi restaurado. Uma tentativa de fixar a versão 1.66.1 também revelou incompatibilidade com o job Python 3.10 do CI; a versão foi alterada para **`streamlit==1.65.0`**, disponível nas três versões Python testadas.
+
+- **Deploy de recuperação:** commit `edac582`, confirmado **Live** no Render em 24/10/2026.
+- **CI de compatibilidade:** commit `ced507b`, **quatro jobs aprovados** (Python 3.10/3.12/3.14 e Chrome mobile) após ajustar o smoke test para reconhecer `aria-expanded=false` como barra lateral recolhida no Streamlit 1.65.
+- Alterações de teste/documentação após essa recuperação devem utilizar `[skip render]` na mensagem de commit para evitar reconstruções desnecessárias durante a validação da URL pública. Consulte [Render — skipping an auto-deploy](https://render.com/docs/deploys#skipping-an-auto-deploy).
+
+Um smoke test público independente está sendo conduzido apenas depois da estabilização do deploy, conferindo downloads efetivos de `.md` e `.html`. **Não anunciar sucesso de download público sem artefatos inspecionados**.
+
 ## Critérios e pendências
 - [x] Contrato analítico e modelo de comparação.
 - [x] Testes de fronteira de período, filtros, casos ausentes, determinismo e segurança da exportação HTML.
