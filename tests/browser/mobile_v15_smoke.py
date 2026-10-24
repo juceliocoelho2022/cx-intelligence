@@ -61,7 +61,10 @@ def check_v15_mobile():
             # Confirm that the action state survives rerender in this session
             # and that the audit events are exported, without external side effects.
             page.get_by_role("button", name="Atualizar estado fictício").click()
-            expect(page.get_by_text("1 ação(ões) fictícia(s) registrada(s) apenas nesta sessão.")).to_be_visible(timeout=45000)
+            expect(page.get_by_text(
+                "Estados simulados: 0 planejada(s), 1 em andamento, 0 concluída(s)."
+            )).to_be_visible(timeout=45000)
+            # Only export after state has been observed on the rerendered page.
             with page.expect_download(timeout=45000) as updated_event:
                 page.get_by_role("button", name="Exportar plano (.json)").click()
             updated_file = updated_event.value
