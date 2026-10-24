@@ -68,3 +68,30 @@ Tabela exclusiva: `cx_external_support_tickets`, chave composta `(source_id,tick
 `python -m pytest -q`
 
 Os testes com CSV de exemplo verificam domínio, minimização, estabilidade do hash, notas nulas e esquema SQL. A integração PostgreSQL real e renderização no navegador devem ser confirmadas localmente.
+
+
+## Evidência de execução local — 24/10/2026
+
+O usuário executou a pré-validação e a carga no próprio Windows, obtendo:
+
+| Indicador | Resultado observado |
+| --- | ---: |
+| Tickets aceitos | **8.469** |
+| Tickets avaliados | **2.769** |
+| CSAT positivo (somente avaliados) | **39,3%** |
+| Tickets com status `Closed` | **32,7%** |
+| Primeira gravação no PostgreSQL | **8.469** linhas afetadas |
+| Segunda gravação do mesmo CSV | **0** linhas afetadas |
+| Testes unitários do repositório antes da integração real | **70 aprovados em 7,35 s** |
+
+Fingerprint calculada do conjunto operacional sanitizado: `c09a1e0cd9046805c5eabff815373a95037b3a98266bdea80ceaf469f6f76741`.
+
+Essas são **evidências fornecidas pelo console local**, não uma garantia sobre versões futuras do CSV. Não foi publicado um arquivo bruto, nem confirmada redistribuição permitida.
+
+## Testes de integração com PostgreSQL real
+
+Além dos testes unitários, o arquivo `tests/test_postgres_integration.py` verifica o UPSERT repetido da fonte Kaggle em banco de testes independente `cx_test`. A execução local é opcional: sem `TEST_DATABASE_URL`, os testes desse arquivo são ignorados. O GitHub Actions foi configurado para criar PostgreSQL 16 de teste sem acessar o banco de desenvolvimento.
+
+## Verificação visual ainda necessária
+
+Na aba **Kaggle externo**, verificar os quatro indicadores: 8.469 tickets, 2.769 avaliações, 39,3% CSAT positivo e 32,7% `Closed`. Conferir os gráficos por tipo e canal e a tabela de status/prioridade. O servidor iniciado e sem exceções explícitas no console **não prova**, sozinho, que todos os gráficos foram renderizados corretamente.
