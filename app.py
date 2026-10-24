@@ -14,6 +14,9 @@ from src.insights import segment_insights
 from src.advanced_cx import weekly_cx_trends, segment_benchmarks, observed_repeat_30d
 from src.reports import build_report, render_markdown
 from src.bi_reports import compare_periods, render_bi_markdown, render_bi_html
+from src.cx_goals import (METRICS as GOAL_METRICS, ROLES as GOAL_ROLES,
+    TRANSITIONS as GOAL_TRANSITIONS, evaluate_goals, create_action,
+    change_action_status, report_payload, export_plan_json, export_plan_markdown)
 from src.audit import audit_manifest, export_manifest
 from src.ticket_events import schema_exists, load_event_history, load_status_as_of, load_ticket_status_as_of
 from src.external_kaggle import external_schema_exists, load_external_tickets, SOURCE_URL
@@ -92,8 +95,8 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
     slot.metric(name,value,help=tip)
 st.markdown('<div class="note">🔎 Os KPIs acima são exclusivamente do dataset sintético principal, não do Kaggle. * Reincidência e sentimento são rótulos simulados. Resolução não mede FCR; não calculamos NPS nem churn real.</div>',unsafe_allow_html=True)
-st.caption("📱 No celular: deslize a faixa de abas até 📐 Analytics v1.3 ou 📑 BI v1.4.")
-tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_advanced,tab_report,tab_bi,tab_events,tab_kaggle,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📐 Analytics v1.3","📋 Relatório executivo","📑 BI v1.4","🕒 Histórico de tickets","🌐 Kaggle externo","🛡️ Qualidade dos dados"])
+st.caption("📱 No celular: deslize a faixa de abas até 📑 BI v1.4 ou 🎯 Metas v1.5.")
+tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_advanced,tab_report,tab_bi,tab_goals,tab_events,tab_kaggle,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📐 Analytics v1.3","📋 Relatório executivo","📑 BI v1.4","🎯 Metas v1.5","🕒 Histórico de tickets","🌐 Kaggle externo","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
     l,r=st.columns(2)
@@ -406,6 +409,158 @@ with tab_bi:
                                  key="bi_v14_html")
     with st.expander("Ver prévia e limitações metodológicas", expanded=False):
         st.markdown(bi_md)
+
+with tab_goals:
+    st.subheader("Metas de CX e Plano de Ação — v1.5 (beta)")
+    st.caption("Demonstração com dados 100% sintéticos. Metas configuráveis são propostas ilustrativas; nenhuma ação é executada por uma equipe real.")
+    st.info("As ações ficam **somente nesta sessão de navegador**. Não há cadastro, banco de planos, login, agendamento de lembretes ou sincronização entre usuários. Exporte JSON ou Markdown para registrar um exemplo.")
+    goal_window_col, goal_count_col = st.columns(2)
+    with goal_window_col:
+        goal_days = st.selectbox("Janela de análise das metas",
+                                 [7, 14, 30], index=1,
+                                 format_func=lambda val: f"{val} dias",
+                                 key="v15_window")
+    with goal_count_col:
+        goal_minimum = st.selectbox("Mínimo de tickets na janela",
+                                    [10, 20, 30, 50, 100], index=2,
+                                    key="v15_minimum")
+    goal_target_cols = st.columns(3)
+    with goal_target_cols[0]:
+        goal_csat = st.number_input("Meta ilustrativa de CSAT (%)",
+                                    min_value=0.0, max_value=100.0,
+                                    value=70.0, step=1.0,
+                                    key="v15_target_csat")
+    with goal_target_cols[1]:
+        goal_resolved = st.number_input("Meta ilustrativa de resolvidos (%)",
+                                        min_value=0.0, max_value=100.0,
+                                        value=90.0, step=1.0,
+                                        key="v15_target_resolved")
+    with goal_target_cols[2]:
+        goal_hours = st.number_input("Teto ilustrativo de tempo médio (h)",
+                                     min_value=0.0, max_value=96.0,
+                                     value=10.0, step=0.5,
+                                     key="v15_target_hours")
+    goal_end_date = dates[1] if len(dates) == 2 else subset.date.max().date()
+    goal_period_report = compare_periods(
+        df, end_date=goal_end_date, window_days=goal_days,
+        topics=topics, channels=channels, min_sample=goal_minimum,
+    )
+    period_now = goal_period_report["period_current"]
+    # Date-range coverage is a necessary condition, not a certification of
+    # ingestion completeness. Incomplete current windows suppress goal verdicts.
+    is_window_covered = (pd.to_datetime(df.date).min().normalize()
+                         <= pd.Timestamp(period_now["start"]))
+    goal_scores = evaluate_goals(
+        goal_period_report["current"],
+        targets={"csat_pct": goal_csat, "resolved_pct": goal_resolved,
+                 "avg_resolution_hours": goal_hours},
+        min_tickets=goal_minimum, current_covered=bool(is_window_covered),
+    )
+    st.caption(f"Janela corrente: {period_now['start']} a {period_now['end']}. "
+               "Filtros de assunto e canal aplicados; a data inicial da barra lateral não altera os dias da janela.")
+    goal_score_cards = st.columns(3)
+    for slot, row_goal in zip(goal_score_cards, goal_scores):
+        goal_suffix = " h" if row_goal["unit"] == "h" else "%"
+        observed = (f'{row_goal["observed"]:.2f}{goal_suffix}'
+                    if row_goal["observed"] is not None else "N/A")
+        slot.metric(row_goal["label"], observed,
+                    help="Meta configurada: " + f'{row_goal["target"]:.2f}{goal_suffix}')
+        if row_goal["status"] == "met":
+            slot.success("Meta ilustrativa atingida")
+        elif row_goal["status"] == "attention":
+            slot.warning(f'Distância para a meta: {row_goal["gap_to_target"]:.2f} {row_goal["unit"]}')
+        else:
+            slot.info("Sem avaliação válida: " + row_goal["status"])
+    st.caption("CSAT e resolução são taxas em %. Distâncias correspondentes são em pontos percentuais (pp). "
+               "Tempo médio e respectiva distância usam horas (h). Não existe teste de significância, SLA real ou atribuição causal.")
+    st.markdown("#### Plano de ação demonstrativo")
+    if "v15_actions" not in st.session_state:
+        st.session_state["v15_actions"] = []
+    with st.form("v15_add_action", clear_on_submit=True):
+        action_title = st.text_input("Ação proposta (até 120 caracteres)",
+                                     placeholder="Ex.: investigar motivos de insatisfação no fluxo Pix")
+        action_hypothesis = st.text_area(
+            "Hipótese a investigar (até 400 caracteres)",
+            placeholder="Ex.: verificar documentação e jornada antes de atribuir qualquer causa.",
+        )
+        action_left, action_right = st.columns(2)
+        with action_left:
+            action_metric = st.selectbox(
+                "Indicador relacionado", list(GOAL_METRICS.keys()),
+                format_func=lambda metric: GOAL_METRICS[metric]["label"],
+                key="v15_action_metric")
+            action_role = st.selectbox("Área responsável fictícia", GOAL_ROLES,
+                                       key="v15_action_role")
+        with action_right:
+            action_deadline = st.date_input("Prazo proposto",
+                                            value=datetime.now().date() + pd.Timedelta(days=14),
+                                            min_value=datetime.now().date(),
+                                            key="v15_action_due")
+        action_submitted = st.form_submit_button("Adicionar ação ilustrativa", type="primary")
+    if action_submitted:
+        try:
+            st.session_state["v15_actions"] = create_action(
+                st.session_state["v15_actions"],
+                metric=action_metric, title=action_title, hypothesis=action_hypothesis,
+                role=action_role, due_date=action_deadline,
+                created_on=datetime.now().date(),
+                period_start=period_now["start"], period_end=period_now["end"],
+                topics=list(topics), channels=list(channels),
+            )
+            st.success("Ação adicionada ao plano desta sessão; nenhuma tarefa foi criada fora da aplicação.")
+        except ValueError as exc:
+            st.error(f"Não foi possível adicionar: {exc}")
+    all_actions = st.session_state["v15_actions"]
+    if all_actions:
+        actions_table = pd.DataFrame([
+            {"ID": a["id"], "Ação": a["title"], "Indicador": GOAL_METRICS[a["metric"]]["label"],
+             "Área fictícia": a["owner_role"], "Prazo": a["due_date"], "Estado": a["status"],
+             "Recorte original": a["scope"]["period_start"] + " a " + a["scope"]["period_end"]}
+            for a in all_actions
+        ])
+        st.dataframe(actions_table, hide_index=True, width="stretch")
+        open_actions = [a for a in all_actions if GOAL_TRANSITIONS[a["status"]]]
+        if open_actions:
+            update_left, update_right = st.columns(2)
+            with update_left:
+                action_selected = st.selectbox(
+                    "Selecionar ação a atualizar", [a["id"] for a in open_actions],
+                    format_func=lambda key: next(a["title"] for a in open_actions if a["id"] == key),
+                    key="v15_action_selected")
+            selected_action = next(a for a in open_actions if a["id"] == action_selected)
+            with update_right:
+                allowed_statuses = sorted(GOAL_TRANSITIONS[selected_action["status"]])
+                next_status = st.selectbox("Próximo estado permitido",
+                                           allowed_statuses,
+                                           key="v15_next_status")
+            if st.button("Atualizar estado fictício", key="v15_update"):
+                try:
+                    st.session_state["v15_actions"] = change_action_status(
+                        all_actions, action_selected, next_status,
+                        datetime.now().date())
+                    st.success("Estado atualizado apenas nesta sessão. Isso não representa execução real nem ganho comprovado.")
+                    st.rerun()
+                except ValueError as exc:
+                    st.error(str(exc))
+        with st.expander("Hipóteses e histórico das ações"):
+            for action_item in all_actions:
+                st.markdown(f'**{action_item["id"]} — {action_item["title"]}**')
+                st.write(action_item["hypothesis"])
+                st.json(action_item["events"])
+    else:
+        st.info("Nenhuma ação proposta ainda. Use o formulário para criar seu primeiro exemplo.")
+    goal_payload = report_payload(goal_scores, st.session_state["v15_actions"], period_now)
+    v15_left, v15_right = st.columns(2)
+    with v15_left:
+        st.download_button("⬇ Exportar plano (.json)", export_plan_json(goal_payload).encode("utf-8"),
+                           "cx_metas_v15_sintetico.json", "application/json",
+                           key="v15_export_json")
+    with v15_right:
+        st.download_button("⬇ Exportar plano (.md)", export_plan_markdown(goal_payload).encode("utf-8"),
+                           "cx_metas_v15_sintetico.md", "text/markdown",
+                           key="v15_export_md")
+    st.caption("Exportar NÃO salva no servidor nem reimporta automaticamente. Toda mudança de filtro muda "
+               "a avaliação corrente; ações já criadas preservam o recorte de origem e seu histórico de estados.")
 
 with tab_events:
     st.subheader("Histórico imutável de eventos dos tickets")
