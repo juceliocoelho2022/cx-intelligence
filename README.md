@@ -5,13 +5,13 @@
 > **Identidade visual conceitual.** Os indicadores exibidos na arte são ilustrativos e não correspondem às métricas calculadas pelo MVP.
 
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.2--validated-brightgreen)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-4169E1?logo=postgresql&logoColor=white) ![Machine Learning](https://img.shields.io/badge/ML-scikit--learn-F7931E) ![Status](https://img.shields.io/badge/Status-v1.3--beta-orange)
 
 > **Dados de atendimento → indicadores CX → análise de risco → recomendações de negócio.**
 
 ### 🌐 Acesse o projeto
 
-**[Abrir demonstração online — CX Intelligence v1.2](https://cx-intelligence-demo.onrender.com/)** · **[GitHub Release v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0)** · **[Guia de execução local completa](docs/KAGGLE_INTEGRATION.md)**
+**[Abrir demonstração online — CX Intelligence v1.3 beta](https://cx-intelligence-demo.onrender.com/)** · **[Última Release estável v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0)** · **[Guia de execução local completa](docs/KAGGLE_INTEGRATION.md)**
 
 A versão pública foi verificada em 24/10/2026: o Streamlit iniciou, respondeu `ok` no endpoint de saúde e exibiu o dashboard com **4.000 tickets exclusivamente sintéticos**. O deploy público **não contém o CSV original do Kaggle nem acessa o PostgreSQL local**. Os módulos PostgreSQL e Kaggle estão disponíveis para instalação local, com dados e limitações explicitados na documentação. O serviço gratuito pode demorar a abrir após inatividade.
 
@@ -37,6 +37,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Histórico de eventos v1.1](docs/TICKET_HISTORY.md) | Eventos imutáveis, transições, idempotência e consultas por data |
 | [Kaggle externo v1.2](docs/KAGGLE_INTEGRATION.md) | CSV externo, minimização de dados, validação e análise separada |
 | [Notas de release v1.2](docs/RELEASE_NOTES_V1.2.0.md) | Evidências de CI, KPIs externos e checklist de aceite |
+| [Analytics avançado v1.3 (beta)](docs/ADVANCED_CX_V1.3.md) | Série semanal, faixas Wilson, benchmark e recontato com censura temporal |
 
 ## Stack
 `Python 3.10+` · `pandas` · `NumPy` · `scikit-learn` · `Streamlit` · `Plotly` · `SQL / PostgreSQL (scripts)` · `pytest`
@@ -139,6 +140,17 @@ A aba **Kaggle externo** mostra contagens e taxas usando denominadores explícit
 - **Tag e release oficial v1.2.0 publicadas no GitHub**. A tag aponta para o commit validado `dee1676`. A demonstração pública no Render está `Live`, usa somente dados sintéticos e passou no smoke test de navegador em 24/10/2026. Redistribuição do CSV externo depende de revisão da licença do Kaggle.
 
 GitHub Actions comprovado: [workflow com testes PostgreSQL reais](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40085653843). Veja [notas do aceite v1.2](docs/RELEASE_NOTES_V1.2.0.md).
+
+## Analytics avançado — v1.3 (beta)
+
+Nova aba **📐 Analytics v1.3** exclusivamente sobre os tickets sintéticos principais, com:
+
+- **Tendência semanal de CSAT**, resolução e tempo em horas, com semanas de borda sinalizadas e faixas de Wilson 95% meramente ilustrativas (não garantem inferência populacional em tickets dependentes).
+- **Benchmark por canal ou assunto**, com volume, participação, taxa de CSAT/resolução, média de horas e diferença em pontos percentuais versus todo o recorte filtrado. Comparação descritiva, não teste causal nem teste de significância.
+- **Recontato encontrado nos tickets fictícios**, distinto do alvo sintético `repeat_contact_30d`: procura novo ticket do mesmo cliente em data posterior até 30 dias, usa a base inteira como horizonte para evitar falsos negativos nos filtros, **exclui tickets sem 30 dias completos de acompanhamento** e não conta contatos no mesmo dia por falta de timestamp.
+- **Exportações CSV e testes unitários** para indicadores, prazos de 30/31 dias, censura, amostras mínimas e regras de domínio.
+
+Os resultados **não são FCR, churn nem recontato real de clientes**; o gerador reutiliza IDs por construção. A demo no Render continua com **dados sintéticos, sem PostgreSQL da máquina do usuário e sem CSV Kaggle**. A [GitHub Release v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0) permanece a versão oficialmente lançada enquanto a v1.3 está em validação. Veja [regras de negócio e limitações](docs/ADVANCED_CX_V1.3.md).
 
 ## Demonstração pública segura (Render)
 
