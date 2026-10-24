@@ -40,6 +40,16 @@ Em 24/10/2026, um workflow temporário com Chrome mobile (390 × 844 px) tentou 
 
 **Ação pendente antes da v1.4.0 estável:** reproduzir e resolver a falha intermitente de importação no Render (ou obter confirmação dos downloads do site público depois de estabilizar o serviço), sem atribuir causa não comprovada.
 
+## Nova validação pública e estabilização de dependência
+
+Em 24/10/2026, foi realizada outra sessão real de navegação na demo do Render, sem promover alterações durante o teste. O navegador carregou **4.000 tickets sintéticos**, os cinco KPIs principais, a aba `📑 BI v1.4`, os quatro indicadores comparativos (685/737 atendimentos; 62,19%/62,01% CSAT; 87,45%/87,38% resolvidos; 10,89 h/11,17 h), o gráfico/tabela por canal e os botões para baixar Markdown/HTML **sem erros visíveis de módulos JS**.
+
+Os dois botões de download foram clicados, **mas a ferramenta de navegação não consegue inspecionar os bytes dos arquivos**, e não exibiu confirmação visual de conclusão. Por isso **a exportação remota permanece sem evidência de sucesso**, diferentemente dos downloads já testados no GitHub Actions contra o servidor local e do aceite manual Windows.
+
+O arquivo `/static/js/Metric.DMz1h4un.js` pôde ser obtido da URL pública em uma requisição posterior à falha. Essa constatação mostra que o recurso estava disponível naquele momento, **sem provar por que a importação falhou antes**. O Render estava realizando vários deploys automáticos em sequência durante o diagnóstico, mas o vínculo causal não foi estabelecido.
+
+**Mitigação adotada:** `requirements.txt` passou a fixar `streamlit==1.66.1`, a versão vista nos logs do Render Live, para manter o conjunto de arquivos JavaScript consistente entre builds reproduzidos. A versão foi fixada para previsibilidade, **não como correção comprovada do erro transitório**. São recomendáveis a verificação dos downloads no Render após um deploy estável e o acompanhamento de novos erros.
+
 ## Critérios e pendências
 - [x] Contrato analítico e modelo de comparação.
 - [x] Testes de fronteira de período, filtros, casos ausentes, determinismo e segurança da exportação HTML.
