@@ -60,6 +60,7 @@ jobs:
       CX_DATA_SOURCE: csv
       CX_PUBLIC_DEMO: "true"
       STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+      CX_V16_TEST_DIAGNOSTICS: "true"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
