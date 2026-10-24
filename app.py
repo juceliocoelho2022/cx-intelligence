@@ -1,5 +1,6 @@
-"""CX Intelligence — dashboard executivo v0.8 (dados integralmente sintéticos)."""
+"""CX Intelligence — dashboard executivo v1.1 (dados integralmente sintéticos)."""
 import os
+from datetime import datetime, time, timezone
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -12,6 +13,7 @@ from src.anomalies import detect_volume_anomalies, weekly_volumes
 from src.insights import segment_insights
 from src.reports import build_report, render_markdown
 from src.audit import audit_manifest, export_manifest
+from src.ticket_events import schema_exists, load_event_history, load_status_as_of
 
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
@@ -54,7 +56,7 @@ if len(dates)==2:
 st.sidebar.divider()
 st.sidebar.caption("🔒 Dataset sintético · Sem dados pessoais reais")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
-st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v0.8</div>
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.1</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
 if subset.empty:
@@ -70,7 +72,7 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
     slot.metric(name,value,help=tip)
 st.markdown('<div class="note">🔎 Todos os números são sintéticos. * Reincidência e sentimento são rótulos simulados. A taxa de resolução não mede FCR e o projeto não mede NPS nem churn real.</div>',unsafe_allow_html=True)
-tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_report,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📋 Relatório executivo","🛡️ Qualidade dos dados"])
+tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_report,tab_events,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📋 Relatório executivo","🕒 Histórico de tickets","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
     l,r=st.columns(2)
@@ -218,6 +220,42 @@ with tab_report:
         st.json(manifest)
         st.caption("Hash SHA-256 reproduzível do recorte; não é assinatura nem certificação de origem.")
     st.info("As recomendações não são decisões automatizadas. Valide amostras, integridade, sazonalidade e hipóteses junto ao time de CX.")
+
+with tab_events:
+    st.subheader("Histórico imutável de eventos dos tickets")
+    st.warning("Transições exibidas são explicitamente simuladas. O campo 'resolved' legado é apenas o estado atual e não reconstitui eventos passados.")
+    if os.getenv("CX_DATA_SOURCE", "csv").lower() != "postgres":
+        st.info("Este módulo requer PostgreSQL. Inicie o banco, configure CX_DATA_SOURCE=postgres e consulte docs/TICKET_HISTORY.md.")
+    elif not schema_exists():
+        st.info("Execute no terminal: python -m src.ticket_events init; depois, opcionalmente, python -m src.ticket_events demo")
+    else:
+        event_rows = load_event_history(limit=500)
+        if not event_rows:
+            st.info("Tabela inicializada, mas sem eventos. Para exemplos fictícios: python -m src.ticket_events demo")
+        else:
+            events_df = pd.DataFrame(event_rows)
+            st.metric("Eventos exibidos (limite 500)", len(events_df))
+            st.caption("O resumo de estados abrange todos os tickets com eventos registrados, não apenas os 500 exibidos nem os filtros da barra lateral.")
+            selected_day = st.date_input("Estado observado até o fim do dia (UTC)",
+                value=events_df.occurred_at.max().date(),
+                min_value=events_df.occurred_at.min().date(),
+                max_value=events_df.occurred_at.max().date(),
+                key="history_as_of_day")
+            state_at = datetime.combine(selected_day, time.max, tzinfo=timezone.utc)
+            statuses = pd.DataFrame(load_status_as_of(state_at))
+            if not statuses.empty:
+                chart(px.bar(statuses, x="status", y="tickets",
+                    title="Último estado registrado por ticket na data selecionada (UTC)",
+                    color_discrete_sequence=[COLORS["orange"]]))
+            else:
+                st.info("Nenhum evento registrado até a data informada.")
+            ticket_choice = st.selectbox("Linha do tempo — ticket fictício",
+                                         sorted(events_df.ticket_id.unique()), key="history_ticket")
+            selected_events = events_df[events_df.ticket_id.eq(ticket_choice)].sort_values("occurred_at")
+            st.dataframe(selected_events, use_container_width=True, hide_index=True)
+            st.caption("A lista detalhada limita-se aos 500 eventos mais recentes. Para uma trilha completa, consulte a tabela SQL por ticket.")
+            st.download_button("⬇ Exportar eventos exibidos (CSV)",
+                events_df.to_csv(index=False).encode("utf-8"), "cx_eventos_sinteticos.csv","text/csv")
 
 with tab_quality:
     errors=validate_data(df)
