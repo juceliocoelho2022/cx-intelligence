@@ -57,11 +57,12 @@ def check_mobile_dashboard():
                 assert displayed == "none", f"Plotly toolbar visible on mobile: {displayed}"
 
             # Interactive switch: Segment benchmark by topic, then channel.
+            group = page.get_by_test_id("stRadioGroup")
             assunto = page.get_by_role("radio", name="Assunto")
-            assunto.check()
+            group.get_by_text("Assunto", exact=True).click()
             expect(assunto).to_be_checked()
             canal = page.get_by_role("radio", name="Canal")
-            canal.check()
+            group.get_by_text("Canal", exact=True).click()
             expect(canal).to_be_checked()
             assert page.locator('[data-testid="stException"]').count() == 0
             assert not errors, f"Browser JS errors: {errors}"
