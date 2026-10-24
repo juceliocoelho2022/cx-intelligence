@@ -3,7 +3,7 @@ name: One-time public Render BI downloads validation
 on:
   push:
     branches: [main]
-    paths: [.github/workflows/verify-public-v14.yml]
+    paths: [.github/workflows/verify-public-v14.yml, tests/browser/mobile_v14_smoke.py]
 
 permissions:
   contents: read
