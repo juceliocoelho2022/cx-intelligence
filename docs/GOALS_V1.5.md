@@ -1,7 +1,6 @@
-# CX Intelligence v1.5 (beta) — Metas e planos de ação
+# CX Intelligence v1.5.0 — Metas e planos de ação
 
-**Status: implementação experimental na `main`, sem tag ou GitHub Release v1.5.**
-Última release estável: [v1.4.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.4.0).
+**Status: versão estável v1.5.0, preparada para publicação oficial.** Versão anterior: [v1.4.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.4.0).
 
 ## Objetivo demonstrativo
 
@@ -57,7 +56,7 @@ Não é permitido concluir diretamente uma ação planejada nem reabrir uma conc
 
 ### Exportação e segurança
 
-- JSON UTF-8 com campos explicitamente estruturados, serialização determinística (`sort_keys=True`) e `schema_version: 1.5.0-beta`; valores não finitos são rejeitados.
+- JSON UTF-8 com campos explicitamente estruturados, serialização determinística (`sort_keys=True`) e `schema_version: 1.5.0` (exportação estável); arquivos `1.5.0-beta` continuam aceitos pelo importador. Valores não finitos são rejeitados.
 - Markdown: tabela de metas, ações propostas e aviso de limitações. Nomes de ações têm limite de 120 caracteres; hipóteses, 400; quebras de linha e caracteres de controle são rejeitados.
 - O conteúdo digitado pertence apenas à sessão em memória. Evite inserir **dados pessoais reais, informações bancárias ou segredos**, já que este é um projeto demonstrativo público.
 - O indicador de conclusão do plano significa somente uma **alteração fictícia de estado** no aplicativo, sem comprovar alteração nos KPIs.
@@ -76,4 +75,4 @@ streamlit run app.py
 
 Acesse a aba **🎯 Metas v1.5**. Altere a meta, crie uma ação de investigação fictícia, inicie sua execução simulada, exporte o plano e confira o aviso de escopo.
 
-**Critério para eventual promoção:** testes Python 3.10/3.12/3.14 e Chrome mobile verdes, revisão da documentação, Render publicado, e confirmação de exportações públicas, sem comprometer as limitações metodológicas.
+**Critério de distribuição estável:** CI Python 3.10/3.12/3.14 e Chrome mobile aprovados, demonstração Render publicada, notas de lançamento e ressalvas metodológicas preservadas. Não há persistência de ações em servidor.
