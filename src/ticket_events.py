@@ -97,7 +97,7 @@ def seed_demo(dsn=None, limit=5):
     for row in rows:
         for key, ticket_id, status, at in demo_plan(row["ticket_id"], row["date"], bool(row["resolved"])):
             created += append_ticket_event(ticket_id,key,status,at,"synthetic_demo",dsn)["outcome"] == "inserted"
-    return {"tickets_seeded": len(rows), "events_inserted": created}
+    return {"tickets_seeded": seeded, "events_inserted": created}
 
 def schema_exists(dsn=None):
     with psycopg.connect(dsn or connection_string()) as conn:
