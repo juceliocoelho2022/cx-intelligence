@@ -1,7 +1,7 @@
 # CX Intelligence — v1.2.0 | Aceite técnico e visual
 
 **Data de preparação:** 24/10/2026
-**Status:** aceite técnico e visual local concluído em 24/10/2026; não há confirmação de Git tag, GitHub Release ou deploy público.
+**Status:** aceite técnico e visual local concluído; tag e GitHub Release v1.2.0 publicadas; demonstração pública sintética em produção no Render, com smoke test bem-sucedido em 24/10/2026.
 **Natureza:** projeto técnico independente de portfólio. Indicadores principais sintéticos; CSV Kaggle importado como fonte demonstrativa isolada.
 
 ## Incrementos desde v1.0
@@ -72,6 +72,17 @@ O usuário apresentou o dashboard Streamlit em execução na porta local 8502, c
 
 Execução recente do GitHub Actions após as alterações de documentação, commit `16b6413`: [workflow bem-sucedido](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40089773056).
 
+## Publicação oficial v1.2.0 e demonstração pública
+
+- **Git tag `v1.2.0` confirmada**, apontando para o commit `dee1676f7d2b2a4be78803c8e338fe7b349e2f4a`.
+- **GitHub Release pública:** https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0 (publicada em 24/10/2026; descrição da Release ainda vazia no GitHub no momento desta verificação, consultar estas notas).
+- **Render demo pública em estado `Live`:** https://cx-intelligence-demo.onrender.com/ (serviço `cx-intelligence-demo`, plano Free, modo `CX_PUBLIC_DEMO=true` e `CX_DATA_SOURCE=csv`).
+- **HTTP health:** `/_stcore/health` retornou `ok`.
+- **Smoke test no navegador:** página inicial carregada sem erros visíveis, painel CX Intelligence v1.2, **4.000 tickets exclusivamente sintéticos**, 10 abas presentes, avisos de privacidade e de ausência de banco e CSV Kaggle expostos.
+- **Último GitHub Actions antes do registro do link:** CI aprovado para commit `dee1676`: https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40093057543
+
+Nota: o snapshot da tag v1.2.0 preserva o código do momento de sua criação. Atualizações posteriores no README e nestas notas de documentação pertencem à branch principal e não modificam a tag já publicada.
+
 ## Escopo e limitações
 
 - Kaggle alvo: https://www.kaggle.com/datasets/suraj520/customer-support-ticket-dataset
@@ -81,7 +92,7 @@ Execução recente do GitHub Actions após as alterações de documentação, co
 - O histórico v1.1 é demonstrativo: eventos históricos anteriores à sua coleta não podem ser reconstruídos da coluna `resolved`.
 - Não há evidência de NPS, churn real, FCR, SLA ou sentimento inferido a partir dos tickets Kaggle.
 - O hash SHA-256 facilita comparação de conteúdos, não autentica a procedência ou garante anonimização.
-- **Não há deploy público confirmado.**
+- **Há deploy público confirmado, com dados somente sintéticos:** https://cx-intelligence-demo.onrender.com/; a instância pública não contém os dados externos do Kaggle nem acessa o PostgreSQL local.
 
 ## Checklist para publicar v1.2.0
 
@@ -92,7 +103,8 @@ Execução recente do GitHub Actions após as alterações de documentação, co
 - [x] Executar localmente `python -m src.ticket_events init`, `demo` e `demo` novamente; confirmar 12 eventos preexistentes nos cinco tickets e idempotência da demo.
 - [x] Conferir visualmente a aba **Histórico de tickets**, total de eventos e gráfico.
 - [x] Revalidar commit da branch principal após ajustes de CI e documentação (workflow do commit `16b6413` aprovado).
-- [ ] Verificar CI do eventual commit final de documentação, se produzido.
-- [ ] Se desejado, criar a tag e a GitHub Release pelo próprio GitHub após o aceite.
+- [x] Verificar CI do commit de publicação do deploy `dee1676` (aprovado).
+- [ ] Verificar CI de eventuais commits adicionais de documentação após a criação da tag.
+- [x] Git tag `v1.2.0` e GitHub Release publicada.
 
-O aceite técnico e visual local está concluído. A publicação de uma GitHub Release/tag e um deploy público são decisões separadas, ainda não confirmadas.
+O aceite técnico e visual local, a publicação da tag/Release e o smoke test do deploy público sintético estão concluídos. Uma revisão editorial da descrição da GitHub Release continua recomendada.
