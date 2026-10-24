@@ -12,6 +12,22 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      TEST_DATABASE_URL: postgresql://cx_test:cx_test_only@127.0.0.1:5434/cx_test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: cx_test
+          POSTGRES_PASSWORD: cx_test_only
+          POSTGRES_DB: cx_test
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U cx_test -d cx_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     strategy:
       matrix:
         python-version: ["3.10", "3.12", "3.14"]
