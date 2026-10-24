@@ -26,6 +26,10 @@ from src.external_kaggle import external_schema_exists, load_external_tickets, S
 PUBLIC_DEMO = os.getenv("CX_PUBLIC_DEMO", "false").lower() in {"true", "1", "yes"}
 
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="auto")
+# CI-only instrumentation. No diagnostic counter is displayed on Render.
+V16_TEST_DIAGNOSTICS = os.getenv("CX_V16_TEST_DIAGNOSTICS", "").lower() == "true"
+if V16_TEST_DIAGNOSTICS:
+    st.session_state["v16_full_app_runs"] = st.session_state.get("v16_full_app_runs", 0) + 1
 COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
 PLOT = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#DCE7F6"), margin=dict(l=15,r=15,t=45,b=20))
 st.markdown("""
@@ -68,6 +72,8 @@ def chart(fig):
 df=load_data()
 st.sidebar.markdown("### 📊 CX Intelligence")
 st.sidebar.caption("Exploração analítica — ambiente demonstrativo")
+if V16_TEST_DIAGNOSTICS:
+    st.sidebar.caption(f'v1.6 full app runs: {st.session_state["v16_full_app_runs"]}')
 st.sidebar.divider()
 topics=st.sidebar.multiselect("Assunto",sorted(df.topic.unique()),default=sorted(df.topic.unique()))
 channels=st.sidebar.multiselect("Canal",sorted(df.channel.unique()),default=sorted(df.channel.unique()))
