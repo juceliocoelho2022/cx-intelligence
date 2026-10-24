@@ -51,3 +51,44 @@ jobs:
         run: python -m src.pipeline
       - name: Evaluate synthetic baseline
         run: python -m src.model
+
+  mobile-browser:
+    name: Mobile browser smoke (390px)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CX_DATA_SOURCE: csv
+      CX_PUBLIC_DEMO: "true"
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Configure Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install application and Playwright
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install "playwright>=1.56,<2"
+      - name: Start Streamlit server
+        run: |
+          python -m streamlit run app.py --server.address 127.0.0.1 --server.port 8501 --server.headless true > streamlit-mobile.log 2>&1 &
+          for n in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:8501/_stcore/health; then exit 0; fi
+            sleep 2
+          done
+          cat streamlit-mobile.log
+          exit 1
+      - name: Verify mobile viewport and analytics
+        run: python tests/browser/mobile_v13_smoke.py
+      - name: Upload screenshot on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cx-v13-mobile-screenshot
+          path: |
+            artifacts/
+            streamlit-mobile.log
+          if-no-files-found: warn
