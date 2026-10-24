@@ -29,8 +29,10 @@ def check_mobile_dashboard():
         page.on("pageerror", lambda error: errors.append(str(error)))
         try:
             page.goto(BASE_URL, wait_until="domcontentloaded", timeout=90_000)
-            expect(page.get_by_text("CX Intelligence", exact=True)).to_be_visible()
-            expect(page.get_by_text("4.000", exact=True).first).to_be_visible()
+            # Initial Streamlit rerender can exceed Playwright's default 5 s
+            # even after DOMContentLoaded. Wait for rendered application KPIs.
+            expect(page.get_by_text("CX Intelligence", exact=True)).to_be_visible(timeout=75_000)
+            expect(page.get_by_text("4.000", exact=True).first).to_be_visible(timeout=75_000)
             assert page.evaluate("window.innerWidth") == 390, "Viewport not 390 px"
             sidebar = page.get_by_test_id("stSidebar")
             # Streamlit 1.65 exposes aria-expanded; later versions may expose
