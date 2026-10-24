@@ -42,6 +42,7 @@ Uma instituição financeira fictícia precisa medir satisfação e resolução,
 | [Histórico da beta v1.3](docs/RELEASE_NOTES_V1.3.0_BETA.md) | Testes e melhorias que antecederam o preparo da release |
 | [BI e relatórios avançados v1.4](docs/BI_V1.4.md) | Comparação de períodos equivalentes, métricas e exportação executiva Markdown/HTML |
 | [Metas de CX e planos de ação v1.5.0](docs/GOALS_V1.5.md) | Metas configuráveis, ações fictícias por sessão, JSON/Markdown, revisão de texto e recuperação de planos |
+| [Performance v1.6 beta](docs/PERFORMANCE_V1.6.md) | Atualizações isoladas da aba Metas, cache de análises, contratos de invalidação e limites de autenticação/persistência |
 | [Release oficial v1.5.0](docs/RELEASE_NOTES_V1.5.0.md) | Escopo, compatibilidade de planos beta, evidências de testes e ressalvas |
 | [Release oficial v1.4.0](docs/RELEASE_NOTES_V1.4.0.md) | BI avançado, 120 testes e downloads públicos HTML/Markdown verificados |
 | [Histórico da beta v1.4](docs/RELEASE_NOTES_V1.4.0_BETA.md) | Registro dos testes e incidentes corrigidos antes da publicação |
@@ -160,6 +161,17 @@ Nova aba **📐 Analytics v1.3** exclusivamente sobre os tickets sintéticos pri
 - **Exportações CSV e testes unitários** para indicadores, prazos de 30/31 dias, censura, amostras mínimas e regras de domínio.
 
 Os resultados **não são FCR, churn nem recontato real de clientes**; o gerador reutiliza IDs por construção. A demo no Render continua com **dados sintéticos, sem PostgreSQL da máquina do usuário e sem CSV Kaggle**. O código da v1.3.0 passou **98 testes da suíte principal no CI (Python 3.12, incluindo PostgreSQL)**, além de smoke test com Chrome no viewport móvel **390 × 844 px**, validando controles e layout. A **[GitHub Release v1.3.0 foi publicada em 24/10/2026](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.3.0)** com a tag apontando para o commit `1586b8e` aprovado no CI. A [v1.2.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.2.0) continua disponível no histórico de versões. Consulte [regras e limites](docs/ADVANCED_CX_V1.3.md) e [notas de lançamento v1.3.0](docs/RELEASE_NOTES_V1.3.0.md).
+
+## Em desenvolvimento — v1.6 beta: Performance e isolamento
+
+A nova etapa prioriza a resposta dos controles de Metas e Planos de Ação no Render, mantendo a **v1.5.0 como última Release oficial**.
+
+- `st.fragment` isola as mudanças de estado e texto na aba Metas das análises das demais abas; editar uma ação não precisa refazer a página inteira.
+- Resultados de **risco sintético, benchmark NLP e BI** usam `st.cache_data` com chaves dependentes dos dados e filtros. Não se armazenam ações no cache global.
+- Novos testes cobrem hit/miss de cache, invalidação após alterar dados ou filtros e a sequência de criação, edição, atualização, exportação e importação no Chrome móvel.
+- **Não há autenticação nem persistência de planos na v1.6 beta**; a arquitetura de autenticação e armazenamento seguro é documentada como trabalho futuro. O site permanece demonstrativo e não deve receber informações reais de clientes.
+
+Consulte [Performance v1.6](docs/PERFORMANCE_V1.6.md) e [Release estável v1.5.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.5.0).
 
 ## Metas e Planos de Ação — v1.5.0 (lançamento oficial)
 
