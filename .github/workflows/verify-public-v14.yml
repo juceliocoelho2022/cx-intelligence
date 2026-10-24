@@ -21,7 +21,7 @@ jobs:
           python-version: "3.12"
       - name: Install Chrome automation
         run: python -m pip install "playwright>=1.56,<2"
-      - name: Verify public dashboard Markdown and HTML download
+      - name: Check public Render health\n        run: curl --fail --retry 6 --retry-delay 10 --retry-all-errors --max-time 45 https://cx-intelligence-demo.onrender.com/_stcore/health\n      - name: Verify public dashboard Markdown and HTML download
         run: python tests/browser/mobile_v14_smoke.py
       - name: Upload diagnostic screenshot if test fails
         if: failure()
