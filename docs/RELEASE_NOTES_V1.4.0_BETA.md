@@ -29,6 +29,17 @@ Valores da tela: **685 vs. 737** atendimentos (**−7,06%**), CSAT **62,19% vs. 
 
 **Escopo da evidência:** os arquivos abertos estão na pasta local `Downloads` e a origem dos downloads **não é identificável nessa captura**; a evidência demonstra leitura e integridade visual local, mas não prova o funcionamento das duas exportações **diretamente via Render público**. O CI já havia validado downloads de Markdown e HTML de ponta a ponta em Chrome headless de largura móvel. A inspeção externa do site público reportou anteriormente erros de importação JS/CSS no fluxo de download; a causa pontual não se reproduziu no CI. Recomenda-se confirmar os dois downloads no site público antes de promover a beta.
 
+## Tentativa de aceite automatizado na URL pública — pendência identificada
+
+Em 24/10/2026, um workflow temporário com Chrome mobile (390 × 844 px) tentou abrir **https://cx-intelligence-demo.onrender.com/** e baixar os dois relatórios diretamente do servidor público. A verificação não conseguiu alcançar os botões de exportação, pois a aplicação apresentou erros de carregamento de módulo JavaScript `Failed to fetch dynamically imported module` relativos ao componente Streamlit `static/js/Metric.DMz1h4un.js`.
+
+- Primeira tentativa: [GitHub Actions #40110708357](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40110708357) — a interface ainda carregava quando a asserção inicial terminou.
+- Nova tentativa com espera de **110 segundos** por `4.000` tickets: [GitHub Actions #40110968806](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40110968806) — erro de importação dinâmica do módulo `Metric` foi capturado no snapshot acessível do navegador antes de chegar à aba BI.
+
+**Diagnóstico ainda não conclusivo:** podem estar envolvidos indisponibilidade momentânea de chunks JS, mudanças de deploy/cache ou falhas de rede. Não foi demonstrado que o endpoint de download em si esteja defeituoso, pois a execução falhou **antes da interação com os botões**. O teste equivalente em um servidor Streamlit local com o mesmo código, em GitHub Actions, **conseguiu efetivamente baixar os arquivos HTML e Markdown**. O usuário também confirmou ambos abrindo no Windows.
+
+**Ação pendente antes da v1.4.0 estável:** reproduzir e resolver a falha intermitente de importação no Render (ou obter confirmação dos downloads do site público depois de estabilizar o serviço), sem atribuir causa não comprovada.
+
 ## Critérios e pendências
 - [x] Contrato analítico e modelo de comparação.
 - [x] Testes de fronteira de período, filtros, casos ausentes, determinismo e segurança da exportação HTML.
@@ -38,7 +49,7 @@ Valores da tela: **685 vs. 737** atendimentos (**−7,06%**), CSAT **62,19% vs. 
 - [x] Validar downloads reais Markdown/HTML no navegador Chrome automatizado em CI, incluindo conteúdo dos arquivos.
 - [x] Validar download, abertura e renderização do relatório HTML no navegador local Windows.
 - [x] Validar abertura e conteúdo do Markdown exportado no VS Code local, além do HTML já verificado no Windows.
-- [ ] Verificar manualmente os downloads **via Render público**, devido ao erro intermitente na inspeção externa.
+- [ ] Confirmar os downloads **via Render público** após investigar o erro de importação dinâmica JS observado em testes remotos. Atualmente a execução falha antes dos botões.
 - [ ] Inspecionar a aba BI v1.4 no Android físico, caso desejado para a Release final.
 - [ ] Promover para Git tag e GitHub Release v1.4.0 após aceite.
 
