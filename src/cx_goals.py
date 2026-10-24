@@ -236,10 +236,15 @@ def load_plan_actions(blob, max_bytes=200_000, max_actions=100):
         if not isinstance(a, dict) or not required.issubset(a) or set(a).difference(required | {"edits"}):
             raise ValueError("Ação exportada contém campos inválidos")
         aid = a["id"]
-        if not isinstance(aid, str) or len(aid) < 2 or not aid.startswith("A") or not aid[1:].isascii() or not aid[1:].isdigit() or aid in ids:
+        if (not isinstance(aid, str) or len(aid) < 2 or not aid.startswith("A")
+                or not aid[1:].isascii() or not aid[1:].isdigit()
+                or len(aid) > 16 or aid in ids):
             raise ValueError("ID de ação inválido ou duplicado")
         ids.add(aid)
-        if a["metric"] not in METRICS or a["owner_role"] not in ROLES or a["status"] not in STATUSES:
+        if not (isinstance(a["metric"], str) and isinstance(a["owner_role"], str)
+                and isinstance(a["status"], str)) or (
+                a["metric"] not in METRICS or a["owner_role"] not in ROLES
+                or a["status"] not in STATUSES):
             raise ValueError("Indicador, área ou status desconhecido")
         _short_text(a["title"], "Título", 120)
         _short_text(a["hypothesis"], "Hipótese de investigação", 400)
@@ -255,7 +260,9 @@ def load_plan_actions(blob, max_bytes=200_000, max_actions=100):
             raise ValueError("Datas do recorte invertidas")
         for key in ("topics", "channels"):
             vals = scope[key]
-            if not isinstance(vals, list) or len(vals) > 40 or len(vals) != len(set(vals)):
+            if not isinstance(vals, list) or len(vals) > 40 or any(
+                not isinstance(val, str) for val in vals
+            ) or len(vals) != len(set(vals)):
                 raise ValueError("Filtros inválidos")
             for val in vals:
                 _short_text(val, "Filtro", 80)
@@ -268,6 +275,8 @@ def load_plan_actions(blob, max_bytes=200_000, max_actions=100):
                 raise ValueError("Evento inválido")
             day = _date(event["on"], "Evento")
             state = event["status"]
+            if not isinstance(state, str) or state not in STATUSES:
+                raise ValueError("Status do evento inválido")
             if last_status is None:
                 if state != "Planejada" or day != created:
                     raise ValueError("Primeiro evento deve ser Planejada na criação")
