@@ -1,4 +1,4 @@
-"""CX Intelligence — dashboard executivo v1.1 (dados integralmente sintéticos)."""
+"""CX Intelligence — dashboard executivo v1.2 (dados integralmente sintéticos)."""
 import os
 from datetime import datetime, time, timezone
 import pandas as pd
@@ -14,6 +14,7 @@ from src.insights import segment_insights
 from src.reports import build_report, render_markdown
 from src.audit import audit_manifest, export_manifest
 from src.ticket_events import schema_exists, load_event_history, load_status_as_of
+from src.external_kaggle import external_schema_exists, load_external_tickets, SOURCE_URL
 
 st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
@@ -56,7 +57,7 @@ if len(dates)==2:
 st.sidebar.divider()
 st.sidebar.caption("🔒 Dataset sintético · Sem dados pessoais reais")
 st.sidebar.caption("Fonte: " + ("PostgreSQL" if os.getenv("CX_DATA_SOURCE","csv").lower()=="postgres" else "CSV local"))
-st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.1</div>
+st.markdown("""<div class="hero"><div class="eyebrow">Customer Experience Analytics · v1.2</div>
 <h1><span style="color:#FF792D">CX</span> Intelligence</h1>
 <p>Transformando interações simuladas em indicadores, análises e hipóteses de melhoria.</p></div>""",unsafe_allow_html=True)
 if subset.empty:
@@ -72,7 +73,7 @@ for slot,(name,value,tip) in zip(kpi_cards,[
     ("Reincidência*",f"{m['repeat_contact_rate_pct']:.1f}%","Alvo sintético, não churn observado")]):
     slot.metric(name,value,help=tip)
 st.markdown('<div class="note">🔎 Todos os números são sintéticos. * Reincidência e sentimento são rótulos simulados. A taxa de resolução não mede FCR e o projeto não mede NPS nem churn real.</div>',unsafe_allow_html=True)
-tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_report,tab_events,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📋 Relatório executivo","🕒 Histórico de tickets","🛡️ Qualidade dos dados"])
+tab_overview,tab_voice,tab_risk,tab_nlp,tab_alerts,tab_insights,tab_report,tab_events,tab_kaggle,tab_quality=st.tabs(["📈 Visão executiva","💬 Voz do cliente","🧠 Risco preditivo","🗣️ NLP experimental","🚨 Alertas CX","🔎 Diagnóstico CX","📋 Relatório executivo","🕒 Histórico de tickets","🌐 Kaggle externo","🛡️ Qualidade dos dados"])
 with tab_overview:
     daily=subset.assign(day=subset.date.dt.date).groupby("day",as_index=False).agg(tickets=("ticket_id","count"),csat=("csat",lambda s:round(100*s.ge(4).mean(),1)))
     l,r=st.columns(2)
@@ -256,6 +257,45 @@ with tab_events:
             st.caption("A lista detalhada limita-se aos 500 eventos mais recentes. Para uma trilha completa, consulte a tabela SQL por ticket.")
             st.download_button("⬇ Exportar eventos exibidos (CSV)",
                 events_df.to_csv(index=False).encode("utf-8"), "cx_eventos_sinteticos.csv","text/csv")
+
+with tab_kaggle:
+    st.subheader("Customer Support Tickets — dataset externo do Kaggle")
+    st.caption("Fonte separada do pipeline sintético principal. Nenhum registro pessoal ou texto livre é importado.")
+    st.markdown(f"Dataset: [Customer Support Ticket Dataset]({SOURCE_URL}). Consulte a licença na página original antes de redistribuir os arquivos.")
+    st.warning("O dataset externo contém dados simulados e representa suporte a produtos tecnológicos, não atendimentos bancários. A data de compra não representa a data do ticket.")
+    if os.getenv("CX_DATA_SOURCE", "csv").lower() != "postgres":
+        st.info("Ative CX_DATA_SOURCE=postgres e importe o arquivo com python -m src.external_kaggle CAMINHO_DO_CSV --write.")
+    elif not external_schema_exists():
+        st.info("Nenhum dataset externo importado. Consulte docs/KAGGLE_INTEGRATION.md para executar uma prévia e importar o CSV.")
+    else:
+        external = load_external_tickets()
+        if external.empty:
+            st.info("A tabela externa está vazia. Importe o CSV para visualizar os indicadores.")
+        else:
+            c1,c2,c3,c4=st.columns(4)
+            rated = external.satisfaction_rating.notna()
+            c1.metric("Tickets externos",len(external))
+            c2.metric("Avaliações válidas",int(rated.sum()))
+            c3.metric("CSAT positivo (avaliados)",
+                      f"{100*external.loc[rated,'satisfaction_rating'].ge(4).mean():.1f}%" if rated.any() else "N/A")
+            c4.metric("Status Closed",f"{100*external.ticket_status.eq('Closed').mean():.1f}%")
+            st.caption("Denominador CSAT: apenas tickets com nota disponível. 'Closed' é um status, não FCR nem comprovação de resolução.")
+            left,right=st.columns(2)
+            with left:
+                counts=external.groupby("ticket_type",as_index=False).size().rename(columns={"size":"tickets"})
+                chart(px.bar(counts,x="tickets",y="ticket_type",orientation="h",
+                             title="Tickets por tipo",color_discrete_sequence=[COLORS["orange"]]))
+            with right:
+                channels_ext=external.groupby("ticket_channel",as_index=False).size().rename(columns={"size":"tickets"})
+                chart(px.bar(channels_ext,x="ticket_channel",y="tickets",
+                             title="Distribuição por canal",color_discrete_sequence=[COLORS["cyan"]]))
+            st.markdown("#### Status e prioridade")
+            priority_ext=pd.crosstab(external.ticket_priority,external.ticket_status).reset_index()
+            st.dataframe(priority_ext,use_container_width=True,hide_index=True)
+            st.caption("Não há duração confiável, histórico de eventos, reincidência, churn ou sentimento NLP disponível neste importador.")
+            st.download_button("⬇ Exportar agregados por tipo (CSV)",
+                               counts.to_csv(index=False).encode("utf-8"),
+                               "cx_kaggle_agregados.csv","text/csv")
 
 with tab_quality:
     errors=validate_data(df)
