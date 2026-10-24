@@ -19,7 +19,7 @@ from src.external_kaggle import external_schema_exists, load_external_tickets, S
 
 PUBLIC_DEMO = os.getenv("CX_PUBLIC_DEMO", "false").lower() in {"true", "1", "yes"}
 
-st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="CX Intelligence | Customer Experience", page_icon="📊", layout="wide", initial_sidebar_state="auto")
 COLORS = {"orange": "#FF792D", "cyan": "#28B8F6", "green": "#34D399", "red": "#FB7185", "muted": "#9BA9C0"}
 PLOT = dict(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#DCE7F6"), margin=dict(l=15,r=15,t=45,b=20))
 st.markdown("""
