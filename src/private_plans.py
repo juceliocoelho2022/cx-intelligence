@@ -85,9 +85,11 @@ def _dsn(value):
         raise PrivatePlanError("Configuração do banco privado inválida") from exc
     if not settings.get("dbname"):
         raise PrivatePlanError("Banco privado sem nome de base")
-    host = settings.get("host", "")
-    # SSL certificate verification is mandatory for any remote DB.
-    if host not in ("", "localhost", "127.0.0.1", "::1") and settings.get("sslmode") != "verify-full":
+    # Validate both host and hostaddr to prevent a misleading local host
+    # alias from masking a remote IP without certificate validation.
+    hosts = (settings.get("host", ""), settings.get("hostaddr", ""))
+    local = ("", "localhost", "127.0.0.1", "::1")
+    if any(host not in local for host in hosts) and settings.get("sslmode") != "verify-full":
         raise PrivatePlanError("Banco remoto exige sslmode=verify-full")
     return dsn
 
