@@ -168,6 +168,9 @@ A nova aba **🎯 Metas v1.5** demonstra um ciclo de acompanhamento CX a partir 
 - **Planos de ação fictícios** vinculados a um indicador, uma hipótese, uma área responsável simulada, um recorte temporal e um prazo proposto, com fluxo `Planejada → Em andamento → Concluída`.
 - As ações existem **somente na sessão aberta do Streamlit**. Não há persistência em banco, tarefas reais, envio de e-mails, aprovação de líderes nem alteração de indicadores causada por uma ação.
 - Download de **JSON determinístico** e **Markdown** com histórico e avisos de limitações.
+- **Restauração manual do JSON v1.5**, validada por esquema, origem sintética e histórico de ações, para recuperar uma sessão encerrada. A restauração substitui apenas as ações da sessão atual, não recalcula retroativamente dados exportados.
+- **Correção do título/hipótese** de uma ação, preservando ID, recorte e estados; revisões textuais são registradas separadamente.
+- CI com **179 testes Python aprovados** e Chrome mobile validando criação, edição, transição, downloads JSON/Markdown e reimportação de um export anterior ([evidência](https://github.com/juceliocoelho2022/cx-intelligence/actions/runs/40123393537)).
 
 **v1.5 é uma beta, não uma Release oficial.** A versão estável permanece a [v1.4.0](https://github.com/juceliocoelho2022/cx-intelligence/releases/tag/v1.4.0). Regras e testes em [Metas v1.5](docs/GOALS_V1.5.md).
 
