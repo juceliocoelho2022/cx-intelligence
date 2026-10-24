@@ -46,4 +46,17 @@ ORDER BY ticket_id, occurred_at DESC, event_key DESC;
 ## Garantias e limites
 A imutabilidade no banco evita alteração acidental via SQL comum, mas não impede ações privilegiadas de administradores. O histórico só é confiável **a partir dos eventos de fato registrados**. Não é possível reconstruir mudanças anteriores da tabela de snapshot. A lógica atual não tem outbox, captura de mudança (CDC), filas, origem autenticada, multiusuário ou trilha de consentimento. O módulo não deve ser usado com clientes reais sem governança e medidas de segurança adicionais.
 
-Testes em `tests/test_ticket_events.py` verificam regras de domínio e estrutura do esquema. A execução de inserts e triggers em um PostgreSQL real precisa de validação local adicional; testes unitários não a substituem.
+Testes de domínio e fakes ficam em `tests/test_ticket_events.py` e `tests/test_ticket_events_storage.py`. O módulo `tests/test_postgres_integration.py` exercita **inserts e transições reais, consultas temporais, trigger contra UPDATE/DELETE, chave estrangeira e importação Kaggle idempotente** em um banco PostgreSQL exclusivo para testes.
+
+O GitHub Actions foi configurado para executar esses testes com um serviço PostgreSQL 16, usando `TEST_DATABASE_URL` e banco de nome exato `cx_test`. Localmente, os testes de integração ficam ignorados se essa variável não for configurada. Por segurança, **não use o banco normal `cx_intelligence` como destino do teste**.
+
+Uma consulta específica de um ticket no passado também está disponível pela função Python `load_ticket_status_as_of(ticket_id, as_of, dsn)`; ela retorna `None` se não existirem eventos até o momento solicitado. A interface agora exibe o status do ticket selecionado para a data escolhida na aba **Histórico de tickets**.
+
+### Checklist visual local de aceite
+
+1. Com o PostgreSQL da aplicação iniciado, rode `python -m src.ticket_events init`.
+2. Execute `python -m src.ticket_events demo` uma única vez; a execução cria alguns eventos **inventados** para tickets da amostra sintética.
+3. Repita `demo`; a resposta esperada é `{'tickets_seeded': 0, 'events_inserted': 0}` se os cinco tickets já foram carregados.
+4. Na aba **Histórico de tickets**, selecione uma data UTC com eventos e confira a linha do tempo e o estado na data.
+5. Não use os números desse módulo como evidência de histórico real de clientes.
+
