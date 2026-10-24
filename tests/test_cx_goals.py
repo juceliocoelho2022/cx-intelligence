@@ -131,6 +131,22 @@ def test_action_validation_rejects_invalid_fields(field, value):
         create_action([], **{**BASE, field: value})
 
 
+@pytest.mark.parametrize("bad", ["", " ", "   "])
+def test_empty_hypothesis_has_clear_required_message(bad):
+    with pytest.raises(ValueError, match="Hipótese de investigação: campo obrigatório"):
+        create_action([], **{**BASE, "hypothesis": bad})
+
+
+def test_overlength_hypothesis_has_explicit_character_count():
+    with pytest.raises(ValueError, match="texto com 401 caracteres; o máximo permitido é 400"):
+        create_action([], **{**BASE, "hypothesis": "X" * 401})
+
+
+def test_hypothesis_exactly_400_chars_is_accepted():
+    actions = create_action([], **{**BASE, "hypothesis": "X" * 400})
+    assert len(actions[0]["hypothesis"]) == 400
+
+
 def test_json_and_markdown_reports_are_deterministic_and_safe():
     input_actions = create_action([], **{
         **BASE, "title": "Pix | ajustes <img src=x onerror=alert(1)>",
